@@ -110,7 +110,8 @@
             ArrowRightLeft: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m16 3 4 4-4 4M20 7H4M8 21l-4-4 4-4M4 17h16"/></svg>,
             Info: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>,
             Check: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
-            Zap: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Zap: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
+            Undo: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
         };
 
         const initialTeams = [
@@ -207,6 +208,9 @@
             // Live Stats State
             const [liveStats, setLiveStats] = useState({});
             const [gameLog, setGameLog] = useState([]);
+            
+            // Tracking transaction history to enable single-tap Undos
+            const [loggedHistory, setLoggedHistory] = useState([]);
 
             // ACTION-FIRST FLOW STATE
             const [activeAction, setActiveAction] = useState(null); 
@@ -236,6 +240,25 @@
 
             // Custom UI dialog states replacing browser alerts
             const [confirmDialog, setConfirmDialog] = useState(null); // { title, text, onConfirm }
+
+            // Scroll Lock Effect to prevent background scrolling on mobile Safari/Chrome
+            useEffect(() => {
+                const isAnyModalOpen = showNewTeamModal || showNewPlayerModal || showSubstitutionModal || showLoggingModal || !!confirmDialog;
+                if (isAnyModalOpen) {
+                    document.body.style.overflow = 'hidden';
+                    document.body.style.position = 'fixed';
+                    document.body.style.width = '100%';
+                } else {
+                    document.body.style.overflow = '';
+                    document.body.style.position = '';
+                    document.body.style.width = '';
+                }
+                return () => {
+                    document.body.style.overflow = '';
+                    document.body.style.position = '';
+                    document.body.style.width = '';
+                };
+            }, [showNewTeamModal, showNewPlayerModal, showSubstitutionModal, showLoggingModal, confirmDialog]);
 
             // BACKUP UTILITIES FOR DATA PORTABILITY
             const handleExportData = () => {
@@ -460,6 +483,7 @@
                 setIsTimerRunning(false);
                 setActiveAction(null);
                 setCorrectionMode(false);
+                setLoggedHistory([]);
                 setGameLog([{ time: "10:00", text: `Match initialized: ${teamAObj.name} vs ${teamBObj.name}` }]);
                 setIsGameLive(true);
                 showToast("Console loaded! Arm an Action and tap a Player to log.", "success");
@@ -474,6 +498,48 @@
                 const multiplier = correctionMode ? -1 : 1;
                 const changeAmount = activeAction.val * multiplier;
                 const statField = activeAction.stat;
+
+                // Generate Game Log Entries
+                const playerObj = teams.flatMap(t => t.players).find(p => p.id === playerId);
+                let logText = "";
+                if (playerObj) {
+                    if (correctionMode) {
+                        logText = `🔄 CORRECTION: ${playerObj.name} stat adjusted (${activeAction.label} removed)`;
+                    } else {
+                        if (statField === 'pts') {
+                            logText = `🏀 SCORE! ${playerObj.name} hits for +${activeAction.val} PTS`;
+                        } else if (statField === 'ast') {
+                            logText = `🪄 Smooth assist registered by ${playerObj.name}`;
+                        } else if (statField === 'reb') {
+                            logText = `🛡️ Rebound pulled down by ${playerObj.name}`;
+                        } else if (statField === 'stl') {
+                            logText = `⚡ Intercepted! Steal recorded for ${playerObj.name}`;
+                        } else if (statField === 'blk') {
+                            logText = `🚫 Blocked! Defensive play by ${playerObj.name}`;
+                        } else if (statField === 'to') {
+                            logText = `⚠️ Turnover charged to ${playerObj.name}`;
+                        } else if (statField === 'pf') {
+                            logText = `❌ Foul called against ${playerObj.name}`;
+                        } else if (statField === 'fg2m') {
+                            logText = `⚠️ 2PT field goal missed by ${playerObj.name}`;
+                        } else if (statField === 'fg3m') {
+                            logText = `⚠️ 3PT field goal missed by ${playerObj.name}`;
+                        }
+                    }
+                }
+
+                const logWithTag = `[${isTeamA ? 'HOME' : 'AWAY'}] ${logText}`;
+
+                // Push to Undo Transaction History
+                const undoRecord = {
+                    playerId,
+                    statField,
+                    changeAmount,
+                    previousTeamAScore: teamAScore,
+                    previousTeamBScore: teamBScore,
+                    logText: logWithTag
+                };
+                setLoggedHistory(prev => [undoRecord, ...prev]);
 
                 setLiveStats(prev => {
                     const currentVal = prev[playerId]?.[statField] || 0;
@@ -510,45 +576,48 @@
                     return updated;
                 });
 
-                // Generate Game Log Entries
-                const playerObj = teams.flatMap(t => t.players).find(p => p.id === playerId);
                 if (playerObj) {
-                    let logText = "";
-                    if (correctionMode) {
-                        logText = `🔄 CORRECTION: ${playerObj.name} stat adjusted (${activeAction.label} removed)`;
-                    } else {
-                        if (statField === 'pts') {
-                            logText = `🏀 SCORE! ${playerObj.name} hits for +${activeAction.val} PTS`;
-                        } else if (statField === 'ast') {
-                            logText = `🪄 Smooth assist registered by ${playerObj.name}`;
-                        } else if (statField === 'reb') {
-                            logText = `🛡️ Rebound pulled down by ${playerObj.name}`;
-                        } else if (statField === 'stl') {
-                            logText = `⚡ Intercepted! Steal recorded for ${playerObj.name}`;
-                        } else if (statField === 'blk') {
-                            logText = `🚫 Blocked! Defensive play by ${playerObj.name}`;
-                        } else if (statField === 'to') {
-                            logText = `⚠️ Turnover charged to ${playerObj.name}`;
-                        } else if (statField === 'pf') {
-                            logText = `❌ Foul called against ${playerObj.name}`;
-                        } else if (statField === 'fg2m') {
-                            logText = `⚠️ 2PT field goal missed by ${playerObj.name}`;
-                        } else if (statField === 'fg3m') {
-                            logText = `⚠️ 3PT field goal missed by ${playerObj.name}`;
-                        }
-                    }
-
                     setGameLog(prev => [
-                        { time: formatTime(timerSeconds), text: `[${isTeamA ? 'HOME' : 'AWAY'}] ${logText}` },
+                        { time: formatTime(timerSeconds), text: logWithTag },
                         ...prev.slice(0, 50)
                     ]);
                 }
 
-                // Disarm active action and close modal dialog
+                // Disarm active action and close modal dialog instantly
                 setActiveAction(null);
                 setCorrectionMode(false);
                 setShowLoggingModal(false);
                 showToast("Logged successfully!");
+            };
+
+            const handleUndo = () => {
+                if (loggedHistory.length === 0) {
+                    showToast("No logged actions left to undo!", "error");
+                    return;
+                }
+
+                const [lastAction, ...remainingHistory] = loggedHistory;
+                setLoggedHistory(remainingHistory);
+
+                setLiveStats(prev => {
+                    const currentPlayerStats = prev[lastAction.playerId];
+                    if (!currentPlayerStats) return prev;
+                    
+                    return {
+                        ...prev,
+                        [lastAction.playerId]: {
+                            ...currentPlayerStats,
+                            [lastAction.statField]: Math.max(0, (currentPlayerStats[lastAction.statField] || 0) - lastAction.changeAmount)
+                        }
+                    };
+                });
+
+                setTeamAScore(lastAction.previousTeamAScore);
+                setTeamBScore(lastAction.previousTeamBScore);
+
+                // Remove corresponding log entry from feed
+                setGameLog(prev => prev.filter(log => log.text !== lastAction.logText));
+                showToast("Last action undone successfully!", "info");
             };
 
             const triggerSubModal = (playerId, isTeamA) => {
@@ -1062,20 +1131,37 @@
                                                     <h3 className="text-sm font-extrabold text-white mt-1">Select any stat action from the categories below</h3>
                                                 </div>
 
-                                                {/* Correction Mode Switch */}
-                                                <button 
-                                                    onClick={() => setCorrectionMode(!correctionMode)}
-                                                    className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 border cursor-pointer ${
-                                                        correctionMode 
-                                                        ? 'bg-red-950 text-red-400 border-red-700 shadow-lg shadow-red-500/5' 
-                                                        : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
-                                                    }`}
-                                                >
-                                                    <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${correctionMode ? 'bg-red-500 border-red-400' : 'bg-transparent border-slate-700'}`}>
-                                                        {correctionMode && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
-                                                    </div>
-                                                    Correction / Subtraction Mode
-                                                </button>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {/* Undo Button */}
+                                                    <button 
+                                                        onClick={handleUndo}
+                                                        disabled={loggedHistory.length === 0}
+                                                        className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 border cursor-pointer ${
+                                                            loggedHistory.length > 0 
+                                                            ? 'bg-amber-500/10 border-amber-500/40 text-amber-400 hover:bg-amber-500/20' 
+                                                            : 'bg-slate-950 text-slate-600 border-slate-900 cursor-not-allowed opacity-50'
+                                                        }`}
+                                                        title="Instantly reverse the last recorded action"
+                                                    >
+                                                        <Icons.Undo />
+                                                        Undo Last Action
+                                                    </button>
+
+                                                    {/* Correction Mode Switch */}
+                                                    <button 
+                                                        onClick={() => setCorrectionMode(!correctionMode)}
+                                                        className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 border cursor-pointer ${
+                                                            correctionMode 
+                                                            ? 'bg-red-950 text-red-400 border-red-700 shadow-lg shadow-red-500/5' 
+                                                            : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
+                                                        }`}
+                                                    >
+                                                        <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${correctionMode ? 'bg-red-500 border-red-400' : 'bg-transparent border-slate-700'}`}>
+                                                            {correctionMode && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                                                        </div>
+                                                        Correction Mode
+                                                    </button>
+                                                </div>
                                             </div>
 
                                             {/* Stat Action Grids */}
@@ -1774,8 +1860,8 @@
 
                     {/* MODAL: NEW TEAM CREATION */}
                     {showNewTeamModal && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-                            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-md shadow-2xl relative">
+                        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-start sm:items-center justify-center p-4">
+                            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-md shadow-2xl relative my-auto">
                                 <h3 className="text-base font-bold text-white mb-1">Create League Franchise</h3>
                                 <p className="text-xs text-slate-400 mb-4">Register a team squad name and branding color code in your league registry.</p>
                                 
@@ -1827,8 +1913,8 @@
 
                     {/* MODAL: REGISTER NEW PLAYER */}
                     {showNewPlayerModal && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-                            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-md shadow-2xl relative">
+                        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-start sm:items-center justify-center p-4">
+                            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-md shadow-2xl relative my-auto">
                                 <h3 className="text-base font-bold text-white mb-1">Add Player Roster Entry</h3>
                                 <p className="text-xs text-slate-400 mb-4">Complete physical registration details for individual player profiling.</p>
 
@@ -1893,8 +1979,8 @@
 
                     {/* MODAL: SUBSTITUTION PLAYER SELECTOR */}
                     {showSubstitutionModal && subTargetPlayer && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-                            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-md shadow-2xl relative">
+                        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center p-4">
+                            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-md shadow-2xl relative my-auto">
                                 <h3 className="text-base font-bold text-white mb-1 flex items-center gap-1.5">
                                     <Icons.ArrowRightLeft /> Substitute Athlete
                                 </h3>
@@ -1951,8 +2037,8 @@
 
                     {/* MODAL: ACTION TARGET PLAYER SELECTOR (POPUP FLOW) */}
                     {showLoggingModal && activeAction && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-                            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-2xl shadow-2xl relative">
+                        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-start sm:items-center justify-center p-4">
+                            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-2xl shadow-2xl relative my-auto">
                                 <div className="text-center mb-5">
                                     <span className={`px-3 py-1 text-xs rounded-full font-bold uppercase tracking-widest font-mono border ${
                                         correctionMode 
@@ -2042,8 +2128,8 @@
                     )}
 
                     {confirmDialog && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in">
-                            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-sm shadow-2xl relative">
+                        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center p-4 animate-fade-in">
+                            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-sm shadow-2xl relative my-auto">
                                 <h3 className="text-lg font-extrabold text-white mb-2 flex items-center gap-2">
                                     <Icons.ShieldAlert /> {confirmDialog.title}
                                 </h3>
