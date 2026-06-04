@@ -54,6 +54,31 @@
 
     <div id="root"></div>
 
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Detect if loaded in live sync environment
+        const hasFirebaseConfig = typeof __firebase_config !== 'undefined';
+        if (hasFirebaseConfig) {
+            try {
+                const firebaseConfig = JSON.parse(__firebase_config);
+                const app = initializeApp(firebaseConfig);
+                const db = getFirestore(app);
+                const auth = getAuth(app);
+                
+                window.firebaseApp = app;
+                window.firebaseDb = db;
+                window.firebaseAuth = auth;
+                window.firebaseUtils = { doc, setDoc, getDoc, onSnapshot, collection, deleteDoc, signInAnonymously, signInWithCustomToken };
+                console.log("Real-time cloud database initialized successfully.");
+            } catch (e) {
+                console.warn("Could not bind cloud sync (running standalone offline).", e);
+            }
+        }
+    </script>
+
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
@@ -161,17 +186,8 @@
         ];
 
         function App() {
-            const [teams, setTeams] = useState(() => {
-                const saved = localStorage.getItem('stat_teams');
-                return saved ? JSON.parse(saved) : initialTeams;
-            });
-
-            const [games, setGames] = useState(() => {
-                const saved = localStorage.getItem('stat_games');
-                return saved ? JSON.parse(saved) : initialGames;
-            });
-
-            // Navigation tabs: 'live' | 'teams' | 'history' | 'leaders'
+            const [teams, setTeams] = useState([]);
+            const [games, setGames] = useState([]);
             const [activeTab, setActiveTab] = useState('live');
             const [toast, setToast] = useState(null);
 
@@ -193,15 +209,15 @@
             const [gameLog, setGameLog] = useState([]);
 
             // ACTION-FIRST FLOW STATE
-            const [activeAction, setActiveAction] = useState(null); // stores armed action obj from STAT_ACTIONS
-            const [correctionMode, setCorrectionMode] = useState(false); // flips math to subtraction (-1)
+            const [activeAction, setActiveAction] = useState(null); 
+            const [correctionMode, setCorrectionMode] = useState(false); 
 
             // Clock Management
             const [timerSeconds, setTimerSeconds] = useState(600);
             const [isTimerRunning, setIsTimerRunning] = useState(false);
             const timerRef = useRef(null);
 
-            // Modals
+            // Modals & UI confirmations
             const [showNewTeamModal, setShowNewTeamModal] = useState(false);
             const [newTeamName, setNewTeamName] = useState("");
             const [newTeamColor, setNewTeamColor] = useState("#3b82f6");
@@ -212,17 +228,82 @@
             const [newPlayerNumber, setNewPlayerNumber] = useState("");
 
             const [showSubstitutionModal, setShowSubstitutionModal] = useState(false);
-            const [subTargetPlayer, setSubTargetPlayer] = useState(null); // { id, name, team: 'A'|'B' }
+            const [subTargetPlayer, setSubTargetPlayer] = useState(null); 
 
-            // LocalStorage Persistence
+            // Custom UI dialog states replacing browser alerts
+            const [confirmDialog, setConfirmDialog] = useState(null); // { title, text, onConfirm }
+
             useEffect(() => {
-                localStorage.setItem('stat_teams', JSON.stringify(teams));
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'wknd-league-stats';
+
+                if (window.firebaseDb) {
+                    const { collection, onSnapshot, signInAnonymously, signInWithCustomToken } = window.firebaseUtils;
+                    const auth = window.firebaseAuth;
+
+                    const initializeSync = async () => {
+                        try {
+                            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                                await signInWithCustomToken(auth, __initial_auth_token);
+                            } else {
+                                await signInAnonymously(auth);
+                            }
+                        } catch (e) {
+                            console.warn("Authentication failed, loading offline fallback data.", e);
+                        }
+
+                        // Sync Teams
+                        const teamsPath = collection(window.firebaseDb, 'artifacts', appId, 'public', 'data', 'teams');
+                        const unsubTeams = onSnapshot(teamsPath, (snapshot) => {
+                            const cloudTeams = [];
+                            snapshot.forEach(doc => {
+                                cloudTeams.push({ id: doc.id, ...doc.data() });
+                            });
+                            if (cloudTeams.length > 0) {
+                                setTeams(cloudTeams);
+                            } else {
+                                setTeams(initialTeams);
+                            }
+                        }, (err) => console.warn("Could not listen to teams on cloud database", err));
+
+                        // Sync Games
+                        const gamesPath = collection(window.firebaseDb, 'artifacts', appId, 'public', 'data', 'games');
+                        const unsubGames = onSnapshot(gamesPath, (snapshot) => {
+                            const cloudGames = [];
+                            snapshot.forEach(doc => {
+                                cloudGames.push({ id: doc.id, ...doc.data() });
+                            });
+                            setGames(cloudGames.sort((a, b) => b.id.localeCompare(a.id)));
+                        }, (err) => console.warn("Could not listen to games on cloud database", err));
+
+                        return () => {
+                            unsubTeams();
+                            unsubGames();
+                        };
+                    };
+
+                    initializeSync();
+                } else {
+                    // Fallback to LocalStorage offline mode
+                    const savedTeams = localStorage.getItem('stat_teams');
+                    const savedGames = localStorage.getItem('stat_games');
+                    setTeams(savedTeams ? JSON.parse(savedTeams) : initialTeams);
+                    setGames(savedGames ? JSON.parse(savedGames) : initialGames);
+                }
+            }, []);
+
+            useEffect(() => {
+                if (!window.firebaseDb && teams.length > 0) {
+                    localStorage.setItem('stat_teams', JSON.stringify(teams));
+                }
             }, [teams]);
 
             useEffect(() => {
-                localStorage.setItem('stat_games', JSON.stringify(games));
+                if (!window.firebaseDb && games.length > 0) {
+                    localStorage.setItem('stat_games', JSON.stringify(games));
+                }
             }, [games]);
 
+            // Timer management hook
             useEffect(() => {
                 if (isTimerRunning) {
                     timerRef.current = setInterval(() => {
@@ -251,6 +332,30 @@
                 const mins = Math.floor(seconds / 60);
                 const secs = seconds % 60;
                 return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            };
+
+            const saveTeamState = async (updatedTeams) => {
+                setTeams(updatedTeams);
+                if (window.firebaseDb) {
+                    const { doc, setDoc } = window.firebaseUtils;
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'wknd-league-stats';
+                    for (const team of updatedTeams) {
+                        await setDoc(doc(window.firebaseDb, 'artifacts', appId, 'public', 'data', 'teams', team.id), team);
+                    }
+                }
+            };
+
+            const saveNewGameState = async (newGame, updatedTeams) => {
+                setGames(prev => [newGame, ...prev]);
+                setTeams(updatedTeams);
+                if (window.firebaseDb) {
+                    const { doc, setDoc } = window.firebaseUtils;
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'wknd-league-stats';
+                    await setDoc(doc(window.firebaseDb, 'artifacts', appId, 'public', 'data', 'games', newGame.id), newGame);
+                    for (const team of updatedTeams) {
+                        await setDoc(doc(window.firebaseDb, 'artifacts', appId, 'public', 'data', 'teams', team.id), team);
+                    }
+                }
             };
 
             const handleStartMatch = (e) => {
@@ -440,36 +545,34 @@
                     playerStats: liveStats
                 };
 
-                setGames(prev => [newGameEntry, ...prev]);
+                const updatedTeams = teams.map(t => {
+                    if (t.id !== teamAId && t.id !== teamBId) return t;
 
-                setTeams(prevTeams => {
-                    return prevTeams.map(t => {
-                        if (t.id !== teamAId && t.id !== teamBId) return t;
+                    const updatedPlayers = t.players.map(p => {
+                        const statObj = liveStats[p.id];
+                        if (!statObj) return p;
 
-                        const updatedPlayers = t.players.map(p => {
-                            const statObj = liveStats[p.id];
-                            if (!statObj) return p;
-
-                            return {
-                                ...p,
-                                gamesPlayed: p.gamesPlayed + 1,
-                                totalStats: {
-                                    pts: p.totalStats.pts + (statObj.pts || 0),
-                                    ast: p.totalStats.ast + (statObj.ast || 0),
-                                    reb: p.totalStats.reb + (statObj.reb || 0),
-                                    stl: p.totalStats.stl + (statObj.stl || 0),
-                                    blk: p.totalStats.blk + (statObj.blk || 0),
-                                    to: p.totalStats.to + (statObj.to || 0),
-                                    pf: p.totalStats.pf + (statObj.pf || 0),
-                                    fg2m: (p.totalStats.fg2m || 0) + (statObj.fg2m || 0),
-                                    fg3m: (p.totalStats.fg3m || 0) + (statObj.fg3m || 0),
-                                }
-                            };
-                        });
-
-                        return { ...t, players: updatedPlayers };
+                        return {
+                            ...p,
+                            gamesPlayed: p.gamesPlayed + 1,
+                            totalStats: {
+                                pts: p.totalStats.pts + (statObj.pts || 0),
+                                ast: p.totalStats.ast + (statObj.ast || 0),
+                                reb: p.totalStats.reb + (statObj.reb || 0),
+                                stl: p.totalStats.stl + (statObj.stl || 0),
+                                blk: p.totalStats.blk + (statObj.blk || 0),
+                                to: p.totalStats.to + (statObj.to || 0),
+                                pf: p.totalStats.pf + (statObj.pf || 0),
+                                fg2m: (p.totalStats.fg2m || 0) + (statObj.fg2m || 0),
+                                fg3m: (p.totalStats.fg3m || 0) + (statObj.fg3m || 0),
+                            }
+                        };
                     });
+
+                    return { ...t, players: updatedPlayers };
                 });
+
+                saveNewGameState(newGameEntry, updatedTeams);
 
                 setIsGameLive(false);
                 setIsTimerRunning(false);
@@ -489,7 +592,7 @@
                     players: []
                 };
 
-                setTeams(prev => [...prev, newTeam]);
+                saveTeamState([...teams, newTeam]);
                 setNewTeamName("");
                 setShowNewTeamModal(false);
                 showToast(`Team "${newTeam.name}" registered successfully.`);
@@ -510,12 +613,14 @@
                     totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0 }
                 };
 
-                setTeams(prev => prev.map(t => {
+                const updatedTeams = teams.map(t => {
                     if (t.id === selectedTeamIdForPlayer) {
                         return { ...t, players: [...t.players, newPlayer] };
                     }
                     return t;
-                }));
+                });
+
+                saveTeamState(updatedTeams);
 
                 if (isGameLive) {
                     if (selectedTeamIdForPlayer === teamAId) {
@@ -538,13 +643,22 @@
                     showToast("Cannot delete players during an active match.", "error");
                     return;
                 }
-                setTeams(prev => prev.map(t => {
-                    if (t.id === teamId) {
-                        return { ...t, players: t.players.filter(playerItem => playerItem.id !== playerId) };
+
+                setConfirmDialog({
+                    title: "Delete Athlete?",
+                    text: "This will permanently remove this player and erase all career statistical performance history.",
+                    onConfirm: () => {
+                        const updatedTeams = teams.map(t => {
+                            if (t.id === teamId) {
+                                return { ...t, players: t.players.filter(playerItem => playerItem.id !== playerId) };
+                            }
+                            return t;
+                        });
+                        saveTeamState(updatedTeams);
+                        setConfirmDialog(null);
+                        showToast("Player removed from roster.");
                     }
-                    return t;
-                }));
-                showToast("Player removed from roster.");
+                });
             };
 
             const handleDeleteTeam = (teamId) => {
@@ -552,8 +666,24 @@
                     showToast("Cannot delete a team while they are playing live.", "error");
                     return;
                 }
-                setTeams(prev => prev.filter(t => t.id !== teamId));
-                showToast("Team removed from league roster.");
+
+                setConfirmDialog({
+                    title: "Erase Franchise?",
+                    text: "Are you sure you want to delete this franchise? All player contracts and career stats will be permanently wiped.",
+                    onConfirm: () => {
+                        const remaining = teams.filter(t => t.id !== teamId);
+                        setTeams(remaining);
+
+                        if (window.firebaseDb) {
+                            const { doc, deleteDoc } = window.firebaseUtils;
+                            const appId = typeof __app_id !== 'undefined' ? __app_id : 'wknd-league-stats';
+                            deleteDoc(doc(window.firebaseDb, 'artifacts', appId, 'public', 'data', 'teams', teamId));
+                        }
+
+                        setConfirmDialog(null);
+                        showToast("Team removed from league roster.");
+                    }
+                });
             };
 
             const getAverages = (player) => {
@@ -579,7 +709,6 @@
                 if (!player) return null;
                 const stats = liveStats[playerId] || { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0 };
 
-                // Determine if row should pulse to show it's a target for an armed action
                 const hasActionArmed = activeAction !== null;
 
                 return (
@@ -593,7 +722,6 @@
                         }`}
                         title={hasActionArmed ? `Click to apply ${correctionMode ? 'CORRECTION: ' : ''}${activeAction.label} to ${player.name}` : "Arm an action first"}
                     >
-                        {/* Profile Info Segment */}
                         <div className="flex items-center gap-3 flex-shrink-0">
                             <span className="font-mono text-xs font-bold text-slate-300 bg-slate-900 px-2.5 py-1 rounded-xl border border-slate-800">
                                 #{player.number}
@@ -602,7 +730,7 @@
                                 <span className="font-extrabold text-sm text-white block truncate">{player.name}</span>
                                 <button 
                                     onClick={(e) => {
-                                        e.stopPropagation(); // prevent registering stats clicking sub button
+                                        e.stopPropagation(); 
                                         triggerSubModal(player.id, isTeamA);
                                     }}
                                     className="text-[10px] text-orange-400 hover:text-orange-300 font-bold flex items-center gap-1 mt-0.5 cursor-pointer"
@@ -612,7 +740,6 @@
                             </div>
                         </div>
 
-                        {/* Real-Time Live Statline */}
                         <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-mono font-bold bg-slate-900/60 px-3 py-2 rounded-xl border border-slate-850/80">
                             <span className="text-orange-400">PTS: <span className="text-white text-xs">{stats.pts}</span></span>
                             <span className="text-slate-600">•</span>
@@ -1069,9 +1196,14 @@
                                                 <div className="space-y-2">
                                                     <button 
                                                         onClick={() => {
-                                                            if (window.confirm("End match and finalize official league box score?")) {
-                                                                handleEndGame();
-                                                            }
+                                                            setConfirmDialog({
+                                                                title: "End League Match?",
+                                                                text: "Are you sure you want to lock in these figures? Career points and metrics across both rosters will instantly upgrade.",
+                                                                onConfirm: () => {
+                                                                    handleEndGame();
+                                                                    setConfirmDialog(null);
+                                                                }
+                                                            });
                                                         }}
                                                         className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition-all shadow-md shadow-orange-500/10 flex items-center justify-center gap-1.5 cursor-pointer"
                                                     >
@@ -1079,12 +1211,17 @@
                                                     </button>
                                                     <button 
                                                         onClick={() => {
-                                                            if (window.confirm("Discard active live match? No statistics will be recorded.")) {
-                                                                setIsGameLive(false);
-                                                                setIsTimerRunning(false);
-                                                                setActiveAction(null);
-                                                                showToast("Live session terminated.", "info");
-                                                            }
+                                                            setConfirmDialog({
+                                                                title: "Cancel Match?",
+                                                                text: "This deletes all active progress for this session. No logs will be saved to disk.",
+                                                                onConfirm: () => {
+                                                                    setIsGameLive(false);
+                                                                    setIsTimerRunning(false);
+                                                                    setActiveAction(null);
+                                                                    setConfirmDialog(null);
+                                                                    showToast("Live session terminated.", "info");
+                                                                }
+                                                            });
                                                         }}
                                                         className="w-full bg-slate-950/60 hover:bg-red-950/40 hover:text-red-300 hover:border-red-900 border border-slate-850 text-slate-400 text-xs py-2 rounded-xl transition-all cursor-pointer"
                                                     >
@@ -1154,11 +1291,7 @@
                                                         </span>
                                                     </div>
                                                     <button 
-                                                        onClick={() => {
-                                                            if (window.confirm(`Delete ${team.name} and erase all roster career files?`)) {
-                                                                handleDeleteTeam(team.id);
-                                                            }
-                                                        }}
+                                                        onClick={() => handleDeleteTeam(team.id)}
                                                         className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-slate-900 rounded-lg transition-colors cursor-pointer"
                                                         title="Delete Franchise"
                                                     >
@@ -1526,7 +1659,7 @@
 
                     {/* FOOTER BAR */}
                     <footer className="mt-16 pt-5 border-t border-slate-850 text-center text-[11px] text-slate-500">
-                        <p>© 2026 League Statistician Console. Securely saving records in offline LocalStorage database caches.</p>
+                        <p>© 2026 League Statistician Console. Securely saving records in real-time Cloud Sync.</p>
                     </footer>
 
                     {/* MODAL: NEW TEAM CREATION */}
@@ -1700,6 +1833,34 @@
                                         className="px-4 py-2 bg-slate-950 hover:bg-slate-850 text-slate-400 hover:text-white text-xs font-semibold rounded-xl border border-slate-850 transition-all cursor-pointer"
                                     >
                                         Cancel Substitution
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {}
+                    {confirmDialog && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in">
+                            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-sm shadow-2xl relative">
+                                <h3 className="text-lg font-extrabold text-white mb-2 flex items-center gap-2">
+                                    <Icons.ShieldAlert /> {confirmDialog.title}
+                                </h3>
+                                <p className="text-xs text-slate-400 leading-relaxed mb-6">
+                                    {confirmDialog.text}
+                                </p>
+                                <div className="flex gap-3 text-xs font-bold">
+                                    <button 
+                                        onClick={() => setConfirmDialog(null)}
+                                        className="flex-1 py-2.5 bg-slate-950 hover:bg-slate-850 text-slate-400 rounded-xl transition-colors border border-slate-850"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button 
+                                        onClick={confirmDialog.onConfirm}
+                                        className="flex-1 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-xl transition-all shadow-lg shadow-red-600/10"
+                                    >
+                                        Confirm
                                     </button>
                                 </div>
                             </div>
