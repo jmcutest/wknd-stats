@@ -220,14 +220,6 @@
             // Active mobile tab for live console tracking
             const [activeMobileConsoleTab, setActiveMobileConsoleTab] = useState('home');
 
-            // Tracking transaction history to enable single-tap Undos
-            const [loggedHistory, setLoggedHistory] = useState([]);
-
-            // ACTION-FIRST FLOW STATE
-            const [activeAction, setActiveAction] = useState(null); 
-            const [correctionMode, setCorrectionMode] = useState(false); 
-            const [showLoggingModal, setShowLoggingModal] = useState(false);
-
             // Modals & UI confirmations
             const [showNewTeamModal, setShowNewTeamModal] = useState(false);
             const [newTeamName, setNewTeamName] = useState("");
