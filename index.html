@@ -311,6 +311,97 @@
                 };
             };
 
+            const handleMergeData = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const fileReader = new FileReader();
+                fileReader.readAsText(file, "UTF-8");
+                fileReader.onload = (event) => {
+                    try {
+                        const parsedData = JSON.parse(event.target.result);
+                        if (!parsedData || !Array.isArray(parsedData.teams) || !Array.isArray(parsedData.games)) {
+                            showToast("Invalid backup file format for merging.", "error");
+                            return;
+                        }
+
+                        // 1. Find new games that don't exist locally
+                        const newGames = parsedData.games.filter(ig => !games.some(lg => lg.id === ig.id));
+                        if (newGames.length === 0) {
+                            showToast("No new game records found to merge.", "info");
+                            return;
+                        }
+
+                        // 2. Clone current teams to safely mutate rosters
+                        let mergedTeams = JSON.parse(JSON.stringify(teams));
+
+                        // 3. Add any completely new teams
+                        parsedData.teams.forEach(importedTeam => {
+                            if (!mergedTeams.some(localTeam => localTeam.id === importedTeam.id)) {
+                                mergedTeams.push(importedTeam);
+                            }
+                        });
+
+                        // 4. Add any completely new players to existing teams
+                        parsedData.teams.forEach(importedTeam => {
+                            const localTeam = mergedTeams.find(t => t.id === importedTeam.id);
+                            if (localTeam) {
+                                importedTeam.players.forEach(importedPlayer => {
+                                    if (!localTeam.players.some(p => p.id === importedPlayer.id)) {
+                                        // Initialize new players with 0 stats (the upcoming newGames loop will update them correctly)
+                                        const newPlayerObj = {
+                                            ...importedPlayer,
+                                            gamesPlayed: 0,
+                                            totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0 }
+                                        };
+                                        localTeam.players.push(newPlayerObj);
+                                    }
+                                });
+                            }
+                        });
+
+                        // 5. Accumulate career averages ONLY from the newly combined matches
+                        newGames.forEach(game => {
+                            Object.entries(game.playerStats).forEach(([playerId, stats]) => {
+                                let foundPlayer = null;
+                                for (let t of mergedTeams) {
+                                    foundPlayer = t.players.find(p => p.id === playerId);
+                                    if (foundPlayer) break;
+                                }
+
+                                if (foundPlayer) {
+                                    foundPlayer.gamesPlayed += 1;
+                                    foundPlayer.totalStats.pts += (stats.pts || 0);
+                                    foundPlayer.totalStats.ast += (stats.ast || 0);
+                                    foundPlayer.totalStats.reb += (stats.reb || 0);
+                                    foundPlayer.totalStats.stl += (stats.stl || 0);
+                                    foundPlayer.totalStats.blk += (stats.blk || 0);
+                                    foundPlayer.totalStats.to += (stats.to || 0);
+                                    foundPlayer.totalStats.pf += (stats.pf || 0);
+                                    foundPlayer.totalStats.fg2m = (foundPlayer.totalStats.fg2m || 0) + (stats.fg2m || 0);
+                                    foundPlayer.totalStats.fg3m = (foundPlayer.totalStats.fg3m || 0) + (stats.fg3m || 0);
+                                }
+                            });
+                        });
+
+                        // 6. Combine the games lists and sort descending
+                        const mergedGames = [...newGames, ...games].sort((a, b) => b.id.localeCompare(a.id));
+
+                        // 7. Commit state changes
+                        saveTeamState(mergedTeams);
+                        setGames(mergedGames);
+                        if (!window.firebaseDb) {
+                            localStorage.setItem('stat_games', JSON.stringify(mergedGames));
+                        }
+
+                        showToast(`Merged ${newGames.length} new game(s) & updated roster averages!`, "success");
+                    } catch (err) {
+                        console.error(err);
+                        showToast("Failed to compile dataset merge.", "error");
+                    }
+                };
+            };
+
             useEffect(() => {
                 const appId = typeof __app_id !== 'undefined' ? __app_id : 'wknd-league-stats';
 
@@ -1440,6 +1531,20 @@
                                                 type="file" 
                                                 accept=".json" 
                                                 onChange={handleImportData} 
+                                                className="hidden" 
+                                            />
+                                        </label>
+                                        {}
+                                        <label 
+                                            className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer relative"
+                                            title="Combine multiple devices files without erasing unique matches"
+                                        >
+                                            <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                                            Merge Backup
+                                            <input 
+                                                type="file" 
+                                                accept=".json" 
+                                                onChange={handleMergeData} 
                                                 className="hidden" 
                                             />
                                         </label>
