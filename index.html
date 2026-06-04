@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>League Statistician Console</title>
+    <title>WKND League Stats</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- React and ReactDOM CDN -->
@@ -41,11 +41,11 @@
         }
         /* Animated pulsing ring for armed action state */
         @keyframes targetPulse {
-            0%, 100% { border-color: rgba(249, 115, 22, 0.4); box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.2); }
-            50% { border-color: rgba(249, 115, 22, 0.9); box-shadow: 0 0 10px 3px rgba(249, 115, 22, 0.4); }
+            0%, 100% { border-color: rgba(16, 185, 129, 0.4); box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.2); }
+            50% { border-color: rgba(16, 185, 129, 0.9); box-shadow: 0 0 10px 3px rgba(16, 185, 129, 0.4); }
         }
         .armed-target {
-            animation: targetPulse 2s infinite ease-in-out;
+            animation: targetPulse 1.8s infinite ease-in-out;
             cursor: pointer;
         }
     </style>
@@ -118,7 +118,7 @@
             {
                 id: "team_1",
                 name: "Apex Thunder",
-                color: "#f59e0b", // Amber
+                color: "#10b981", // Emerald Green
                 players: [
                     { id: "p1", name: "Marcus Thompson", number: "23", gamesPlayed: 3, totalStats: { pts: 54, ast: 12, reb: 24, stl: 6, blk: 3, to: 4, pf: 6, fg2m: 8, fg3m: 5 } },
                     { id: "p2", name: "Darnell Carter", number: "3", gamesPlayed: 3, totalStats: { pts: 42, ast: 22, reb: 11, stl: 9, blk: 1, to: 8, pf: 4, fg2m: 10, fg3m: 6 } },
@@ -131,7 +131,7 @@
             {
                 id: "team_2",
                 name: "Shadow Elite",
-                color: "#3b82f6", // Blue
+                color: "#ef4444", // Red
                 players: [
                     { id: "p7", name: "Chris Evans", number: "10", gamesPlayed: 3, totalStats: { pts: 48, ast: 9, reb: 15, stl: 5, blk: 2, to: 3, pf: 5, fg2m: 9, fg3m: 4 } },
                     { id: "p8", name: "Devon Brooks", number: "1", gamesPlayed: 3, totalStats: { pts: 36, ast: 18, reb: 12, stl: 7, blk: 0, to: 6, pf: 4, fg2m: 5, fg3m: 9 } },
@@ -168,24 +168,27 @@
             }
         ];
 
+        /* STREAMING_CHUNK: Setting up Action Deck with colored buttons (Green/Red) */
         const STAT_ACTIONS = [
-            // Scoring
-            { id: 'pts_1', label: '+1 FT', category: 'score', stat: 'pts', val: 1, colorClass: 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500' },
-            { id: 'pts_2', label: '+2 PTS', category: 'score', stat: 'pts', val: 2, colorClass: 'bg-orange-600 hover:bg-orange-500 text-white border-orange-400' },
-            { id: 'pts_3', label: '+3 PTS', category: 'score', stat: 'pts', val: 3, colorClass: 'bg-indigo-600 hover:bg-indigo-500 text-white border-indigo-500' },
-            // Misses
-            { id: 'fg2m', label: '2PT Miss', category: 'miss', stat: 'fg2m', val: 1, colorClass: 'bg-rose-900 hover:bg-rose-800 text-rose-100 border-rose-700' },
-            { id: 'fg3m', label: '3PT Miss', category: 'miss', stat: 'fg3m', val: 1, colorClass: 'bg-pink-900 hover:bg-pink-800 text-pink-100 border-pink-700' },
-            // Core Positive Actions
-            { id: 'ast', label: '+1 AST', category: 'play', stat: 'ast', val: 1, colorClass: 'bg-sky-950 hover:bg-sky-900 text-sky-200 border-sky-850' },
-            { id: 'reb', label: '+1 REB', category: 'play', stat: 'reb', val: 1, colorClass: 'bg-blue-950 hover:bg-blue-900 text-blue-200 border-blue-850' },
-            { id: 'stl', label: '+1 STL', category: 'play', stat: 'stl', val: 1, colorClass: 'bg-teal-950 hover:bg-teal-900 text-teal-200 border-teal-850' },
-            { id: 'blk', label: '+1 BLK', category: 'play', stat: 'blk', val: 1, colorClass: 'bg-violet-950 hover:bg-violet-900 text-violet-200 border-violet-850' },
-            // Deficits
-            { id: 'to', label: '+1 TO', category: 'deficit', stat: 'to', val: 1, colorClass: 'bg-amber-950 hover:bg-amber-900 text-amber-200 border-amber-850' },
-            { id: 'pf', label: '+1 FOUL', category: 'deficit', stat: 'pf', val: 1, colorClass: 'bg-red-950 hover:bg-red-900 text-red-200 border-red-850' }
+            // Scoring (Green/Emerald System)
+            { id: 'pts_1', label: '+1 FT', category: 'score', stat: 'pts', val: 1, colorClass: 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500 shadow-emerald-950/20' },
+            { id: 'pts_2', label: '+2 PTS', category: 'score', stat: 'pts', val: 2, colorClass: 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500 shadow-emerald-950/20' },
+            { id: 'pts_3', label: '+3 PTS', category: 'score', stat: 'pts', val: 3, colorClass: 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500 shadow-emerald-950/20' },
+            
+            // Core Positive Actions (Green/Emerald System)
+            { id: 'ast', label: '+1 AST', category: 'play', stat: 'ast', val: 1, colorClass: 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-600' },
+            { id: 'reb', label: '+1 REB', category: 'play', stat: 'reb', val: 1, colorClass: 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-600' },
+            { id: 'stl', label: '+1 STL', category: 'play', stat: 'stl', val: 1, colorClass: 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-600' },
+            { id: 'blk', label: '+1 BLK', category: 'play', stat: 'blk', val: 1, colorClass: 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-600' },
+            
+            // Missed / Deficit / Negative Actions (Red/Rose System)
+            { id: 'fg2m', label: '2PT Miss', category: 'miss', stat: 'fg2m', val: 1, colorClass: 'bg-red-600 hover:bg-red-500 text-white border-red-500 shadow-red-950/20' },
+            { id: 'fg3m', label: '3PT Miss', category: 'miss', stat: 'fg3m', val: 1, colorClass: 'bg-red-600 hover:bg-red-500 text-white border-red-500 shadow-red-950/20' },
+            { id: 'to', label: '+1 TO', category: 'deficit', stat: 'to', val: 1, colorClass: 'bg-red-700 hover:bg-red-600 text-white border-red-650' },
+            { id: 'pf', label: '+1 FOUL', category: 'deficit', stat: 'pf', val: 1, colorClass: 'bg-red-800 hover:bg-red-700 text-white border-red-700' }
         ];
 
+        /* STREAMING_CHUNK: Initializing App Component and state systems */
         function App() {
             const [teams, setTeams] = useState([]);
             const [games, setGames] = useState([]);
@@ -209,10 +212,8 @@
             const [liveStats, setLiveStats] = useState({});
             const [gameLog, setGameLog] = useState([]);
             
-            // Tracking transaction history to enable single-tap Undos
+            // Action First States & History tracking
             const [loggedHistory, setLoggedHistory] = useState([]);
-
-            // ACTION-FIRST FLOW STATE
             const [activeAction, setActiveAction] = useState(null); 
             const [correctionMode, setCorrectionMode] = useState(false); 
             const [showLoggingModal, setShowLoggingModal] = useState(false);
@@ -223,7 +224,7 @@
             // Modals & UI confirmations
             const [showNewTeamModal, setShowNewTeamModal] = useState(false);
             const [newTeamName, setNewTeamName] = useState("");
-            const [newTeamColor, setNewTeamColor] = useState("#3b82f6");
+            const [newTeamColor, setNewTeamColor] = useState("#10b981");
 
             const [showNewPlayerModal, setShowNewPlayerModal] = useState(false);
             const [selectedTeamIdForPlayer, setSelectedTeamIdForPlayer] = useState("");
@@ -306,6 +307,57 @@
                 };
             };
 
+            // Roster-Only Share Utilities
+            const handleExportRostersOnly = () => {
+                try {
+                    // Extract only team configurations and players list without career stats history
+                    const rostersOnly = teams.map(t => ({
+                        id: t.id,
+                        name: t.name,
+                        color: t.color,
+                        players: t.players.map(p => ({
+                            id: p.id,
+                            name: p.name,
+                            number: p.number,
+                            gamesPlayed: 0,
+                            totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0 }
+                        }))
+                    }));
+
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(rostersOnly));
+                    const downloadAnchor = document.createElement('a');
+                    downloadAnchor.setAttribute("href", dataStr);
+                    downloadAnchor.setAttribute("download", `league_rosters_${new Date().toISOString().split('T')[0]}.json`);
+                    document.body.appendChild(downloadAnchor);
+                    downloadAnchor.click();
+                    downloadAnchor.remove();
+                    showToast("Roster templates exported successfully!", "success");
+                } catch (e) {
+                    showToast("Failed to compile roster export.", "error");
+                }
+            };
+
+            const handleImportRostersOnly = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const fileReader = new FileReader();
+                fileReader.readAsText(file, "UTF-8");
+                fileReader.onload = (event) => {
+                    try {
+                        const parsedRosters = JSON.parse(event.target.result);
+                        if (parsedRosters && Array.isArray(parsedRosters)) {
+                            saveTeamState(parsedRosters);
+                            showToast("Team rosters imported and loaded!", "success");
+                        } else {
+                            showToast("Invalid roster template structure.", "error");
+                        }
+                    } catch (err) {
+                        showToast("Failed to process roster upload.", "error");
+                    }
+                };
+            };
+
             const handleMergeData = (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
@@ -343,7 +395,7 @@
                             if (localTeam) {
                                 importedTeam.players.forEach(importedPlayer => {
                                     if (!localTeam.players.some(p => p.id === importedPlayer.id)) {
-                                        // Initialize new players with 0 stats (the upcoming newGames loop will update them correctly)
+                                        // Initialize new players with 0 stats
                                         const newPlayerObj = {
                                             ...importedPlayer,
                                             gamesPlayed: 0,
@@ -397,6 +449,7 @@
                 };
             };
 
+            /* STREAMING_CHUNK: Managing data fetching and sync listeners */
             useEffect(() => {
                 const appId = typeof __app_id !== 'undefined' ? __app_id : 'wknd-league-stats';
 
@@ -470,7 +523,6 @@
                         setLiveStats(session.liveStats || {});
                         setGameLog(session.gameLog || []);
                         setLoggedHistory(session.loggedHistory || []);
-                        setTimerSeconds(session.timerSeconds ?? 600);
                         setIsGameLive(true);
                         setTimeout(() => showToast("Restored your ongoing active match!", "info"), 100);
                     }
@@ -538,6 +590,7 @@
                 }
             };
 
+            /* STREAMING_CHUNK: Processing Live Match Initialization */
             const handleStartMatch = (e) => {
                 e.preventDefault();
                 if (!teamAId || !teamBId) {
@@ -589,6 +642,7 @@
                 showToast("Console loaded! Arm an Action and tap a Player to log.", "success");
             };
 
+            /* STREAMING_CHUNK: Processing courtside single-tap action entries */
             const handlePlayerClick = (playerId, isTeamA) => {
                 if (!activeAction) {
                     showToast("Please select a stat action from the deck first!", "error");
@@ -928,6 +982,7 @@
                 };
             };
 
+            /* STREAMING_CHUNK: Rendering On-court player cards with state monitors */
             const renderPlayerCompactRow = (playerId, isTeamA) => {
                 const teamObj = isTeamA ? teams.find(t => t.id === teamAId) : teams.find(t => t.id === teamBId);
                 if (!teamObj) return null;
@@ -943,7 +998,7 @@
                         onClick={() => hasActionArmed && handlePlayerClick(player.id, isTeamA)}
                         className={`bg-slate-950/90 border p-3.5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all select-none ${
                             hasActionArmed 
-                            ? 'armed-target hover:bg-slate-900 border-orange-500/50' 
+                            ? 'armed-target hover:bg-slate-900 border-emerald-500/50' 
                             : 'border-slate-800 hover:border-slate-700/60'
                         }`}
                         title={hasActionArmed ? `Click to apply ${correctionMode ? 'CORRECTION: ' : ''}${activeAction.label} to ${player.name}` : "Arm an action first"}
@@ -994,11 +1049,10 @@
                     
                     {/* LEAGUE HEADER */}
                     <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6 border-b border-slate-800 pb-5">
-                        <div className="flex items-center gap-3">
-                            <Icons.Basketball />
+                        <div className="flex items-center gap-4">
                             <div>
                                 <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">
-                                    League Statistician Hub
+                                    WKND League Stats
                                 </h1>
                                 <p className="text-slate-400 text-xs md:text-sm mt-0.5">Professional, action-first courtside management deck</p>
                             </div>
@@ -1189,11 +1243,11 @@
                                         </div>
 
                                         {/* Action Deck Selection */}
-                                        <div className="col-span-12 bg-slate-900/95 border border-orange-500/25 p-5 rounded-2xl shadow-xl space-y-4">
+                                        <div className="col-span-12 bg-slate-900/95 border border-slate-800 p-5 rounded-2xl shadow-xl space-y-4">
                                             
                                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800 pb-3">
                                                 <div>
-                                                    <span className="text-[10px] bg-orange-500/10 border border-orange-500/30 text-orange-400 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider inline-flex items-center gap-1">
+                                                    <span className="text-[10px] bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider inline-flex items-center gap-1">
                                                         <Icons.Zap /> Step 1: Armed Action Deck
                                                     </span>
                                                     <h3 className="text-sm font-extrabold text-white mt-1">Select any stat action from the categories below</h3>
@@ -1246,7 +1300,7 @@
                                                             }}
                                                             className={`p-3 rounded-xl text-center text-xs font-extrabold tracking-wide border transition-all cursor-pointer ${act.colorClass} ${
                                                                 isArmed 
-                                                                ? 'ring-2 ring-orange-500 scale-105 shadow-lg border-white/50 animate-pulse' 
+                                                                ? 'ring-2 ring-emerald-400 scale-105 shadow-lg border-white/50 animate-pulse' 
                                                                 : 'border-transparent shadow-md'
                                                             }`}
                                                         >
@@ -1258,9 +1312,9 @@
 
                                             {/* Guidance Panels */}
                                             {activeAction ? (
-                                                <div className="bg-orange-500/10 border border-orange-500/30 p-3 rounded-xl flex items-center justify-between text-xs animate-bounce">
-                                                    <span className="text-orange-300 font-extrabold flex items-center gap-2">
-                                                        🎯 ARMED ACTION: <span className="bg-orange-500 text-white px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold uppercase">{correctionMode ? 'CORRECTION: ' : ''}{activeAction.label}</span>
+                                                <div className="bg-emerald-500/10 border border-emerald-500/30 p-3 rounded-xl flex items-center justify-between text-xs animate-bounce">
+                                                    <span className="text-emerald-300 font-extrabold flex items-center gap-2">
+                                                        🎯 ARMED ACTION: <span className="bg-emerald-500 text-white px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold uppercase">{correctionMode ? 'CORRECTION: ' : ''}{activeAction.label}</span>
                                                     </span>
                                                     <span className="text-slate-400">⚡ Tap any player on-court below to log stats.</span>
                                                 </div>
@@ -1277,7 +1331,7 @@
                                             <button
                                                 type="button"
                                                 onClick={() => setActiveMobileConsoleTab('home')}
-                                                style={activeMobileConsoleTab === 'home' ? { backgroundColor: teams.find(t => t.id === teamAId)?.color || '#f97316' } : {}}
+                                                style={activeMobileConsoleTab === 'home' ? { backgroundColor: teams.find(t => t.id === teamAId)?.color || '#10b981' } : {}}
                                                 className={`flex-1 py-3 text-center text-xs font-black rounded-xl transition-all ${
                                                     activeMobileConsoleTab === 'home'
                                                     ? 'text-white shadow-lg'
@@ -1289,7 +1343,7 @@
                                             <button
                                                 type="button"
                                                 onClick={() => setActiveMobileConsoleTab('away')}
-                                                style={activeMobileConsoleTab === 'away' ? { backgroundColor: teams.find(t => t.id === teamBId)?.color || '#3b82f6' } : {}}
+                                                style={activeMobileConsoleTab === 'away' ? { backgroundColor: teams.find(t => t.id === teamBId)?.color || '#ef4444' } : {}}
                                                 className={`flex-1 py-3 text-center text-xs font-black rounded-xl transition-all ${
                                                     activeMobileConsoleTab === 'away'
                                                     ? 'text-white shadow-lg'
@@ -1340,7 +1394,7 @@
                                                                     <button
                                                                         key={benchId}
                                                                         onClick={() => executeSubstitution(teamALineup[0], benchId, true)}
-                                                                        className="px-2.5 py-1 bg-slate-900 hover:bg-orange-500/20 hover:text-orange-300 rounded-lg text-[10px] text-slate-300 border border-slate-800 transition-all font-semibold cursor-pointer"
+                                                                        className="px-2.5 py-1 bg-slate-900 hover:bg-emerald-500/20 hover:text-emerald-300 rounded-lg text-[10px] text-slate-300 border border-slate-800 transition-all font-semibold cursor-pointer"
                                                                         title="Tap to swap with first court player"
                                                                     >
                                                                         #{player.number} {player.name.split(' ')[1] || player.name}
@@ -1389,7 +1443,7 @@
                                                                     <button
                                                                         key={benchId}
                                                                         onClick={() => executeSubstitution(teamBLineup[0], benchId, false)}
-                                                                        className="px-2.5 py-1 bg-slate-900 hover:bg-orange-500/20 hover:text-orange-300 rounded-lg text-[10px] text-slate-300 border border-slate-800 transition-all font-semibold cursor-pointer"
+                                                                        className="px-2.5 py-1 bg-slate-900 hover:bg-emerald-500/20 hover:text-emerald-300 rounded-lg text-[10px] text-slate-300 border border-slate-800 transition-all font-semibold cursor-pointer"
                                                                         title="Tap to swap with first court player"
                                                                     >
                                                                         #{player.number} {player.name.split(' ')[1] || player.name}
@@ -1409,7 +1463,7 @@
                                             {/* Play-by-Play Activity Feed */}
                                             <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex-1 flex flex-col max-h-[520px]">
                                                 <div className="flex items-center justify-between border-b border-slate-850 pb-3 mb-3">
-                                                    <h4 className="font-extrabold text-xs uppercase text-orange-400 tracking-wider">Play-by-Play Log</h4>
+                                                    <h4 className="font-extrabold text-xs uppercase text-emerald-400 tracking-wider">Play-by-Play Log</h4>
                                                     <span className="text-[10px] bg-slate-950 px-2 py-0.5 rounded text-slate-500 font-mono font-bold">LIVE FEED</span>
                                                 </div>
 
@@ -1448,7 +1502,7 @@
                                                                 }
                                                             });
                                                         }}
-                                                        className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition-all shadow-md shadow-orange-500/10 flex items-center justify-center gap-1.5 cursor-pointer"
+                                                        className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition-all shadow-md shadow-emerald-500/10 flex items-center justify-center gap-1.5 cursor-pointer"
                                                     >
                                                         Save & End Official Game
                                                     </button>
@@ -1459,7 +1513,6 @@
                                                                 text: "This deletes all active progress for this session. No logs will be saved to disk.",
                                                                 onConfirm: () => {
                                                                     setIsGameLive(false);
-                                                                    setIsTimerRunning(false);
                                                                     setActiveAction(null);
                                                                     setConfirmDialog(null);
                                                                     showToast("Live session terminated.", "info");
@@ -1484,69 +1537,100 @@
                         {activeTab === 'teams' && (
                             <div className="space-y-6">
                                 
-                                <div className="flex items-center justify-between flex-wrap gap-4">
+                                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                                     <div>
                                         <h3 className="text-xl font-bold text-white">League Franchise Rosters</h3>
                                         <p className="text-xs text-slate-400">Add or remove league franchises, customize rosters, and inspect career logs.</p>
                                     </div>
-                                    <div className="flex flex-wrap gap-2">
-                                        <button 
-                                            onClick={handleExportData}
-                                            className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer"
-                                            title="Download all league rosters and match history"
-                                        >
-                                            <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
-                                            Export Backup
-                                        </button>
-                                        <label 
-                                            className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer relative"
-                                            title="Upload and restore a league backup file"
-                                        >
-                                            <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"/></svg>
-                                            Import Backup
-                                            <input 
-                                                type="file" 
-                                                accept=".json" 
-                                                onChange={handleImportData} 
-                                                className="hidden" 
-                                            />
-                                        </label>
-                                        {}
-                                        <label 
-                                            className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer relative"
-                                            title="Combine multiple devices files without erasing unique matches"
-                                        >
-                                            <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-                                            Merge Backup
-                                            <input 
-                                                type="file" 
-                                                accept=".json" 
-                                                onChange={handleMergeData} 
-                                                className="hidden" 
-                                            />
-                                        </label>
-                                        <button 
-                                            onClick={() => setShowNewTeamModal(true)}
-                                            className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer"
-                                        >
-                                            <Icons.FolderPlus />
-                                            Create Team
-                                        </button>
-                                        <button 
-                                            onClick={() => {
-                                                if (teams.length === 0) {
-                                                    showToast("Create a team franchise first.", "error");
-                                                    return;
-                                                }
-                                                setSelectedTeamIdForPlayer(teams[0].id);
-                                                setShowNewPlayerModal(true);
-                                            }}
-                                            className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md shadow-orange-500/10 cursor-pointer"
-                                        >
-                                            <Icons.UserPlus />
-                                            Add Player
-                                        </button>
+                                    
+                                    {/* Categorized Sharing Toolbar */}
+                                    <div className="flex flex-wrap gap-4 bg-slate-950 p-3 rounded-2xl border border-slate-850">
+                                        
+                                        {/* Group A: Roster Templates */}
+                                        <div className="flex items-center gap-2 border-r border-slate-800 pr-4">
+                                            <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-widest block">Rosters:</span>
+                                            <button 
+                                                onClick={handleExportRostersOnly}
+                                                className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                                                title="Download only teams and players list without historical game stats"
+                                            >
+                                                Export Templates
+                                            </button>
+                                            <label 
+                                                className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer relative"
+                                                title="Upload a rosters template file directly to other devices"
+                                            >
+                                                Import Templates
+                                                <input 
+                                                    type="file" 
+                                                    accept=".json" 
+                                                    onChange={handleImportRostersOnly} 
+                                                    className="hidden" 
+                                                />
+                                            </label>
+                                        </div>
+
+                                        {/* Group B: Database backups */}
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-widest block">Games DB:</span>
+                                            <button 
+                                                onClick={handleExportData}
+                                                className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                                                title="Download complete database including games and career metrics"
+                                            >
+                                                Export All
+                                            </button>
+                                            <label 
+                                                className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer relative"
+                                                title="Restore entire database from a file"
+                                            >
+                                                Restore Backup
+                                                <input 
+                                                    type="file" 
+                                                    accept=".json" 
+                                                    onChange={handleImportData} 
+                                                    className="hidden" 
+                                                />
+                                            </label>
+                                            <label 
+                                                className="bg-slate-900 hover:bg-emerald-950/20 hover:border-emerald-800/40 border border-slate-850 text-emerald-400 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer relative transition-colors"
+                                                title="Add match logs from other statisticians without losing your own"
+                                            >
+                                                Merge Matches
+                                                <input 
+                                                    type="file" 
+                                                    accept=".json" 
+                                                    onChange={handleMergeData} 
+                                                    className="hidden" 
+                                                />
+                                            </label>
+                                        </div>
+
                                     </div>
+                                </div>
+
+                                <div className="flex justify-end gap-2">
+                                    <button 
+                                        onClick={() => setShowNewTeamModal(true)}
+                                        className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                                    >
+                                        <Icons.FolderPlus />
+                                        Create Team
+                                    </button>
+                                    <button 
+                                        onClick={() => {
+                                            if (teams.length === 0) {
+                                                showToast("Create a team franchise first.", "error");
+                                                return;
+                                            }
+                                            setSelectedTeamIdForPlayer(teams[0].id);
+                                            setShowNewPlayerModal(true);
+                                        }}
+                                        className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md shadow-emerald-500/10 cursor-pointer"
+                                    >
+                                        <Icons.UserPlus />
+                                        Add Player
+                                    </button>
                                 </div>
 
                                 {/* TEAMS GRID WITH ROSTER LISTS */}
@@ -1687,7 +1771,7 @@
                                                     
                                                     {/* Team A Boxscore Summary */}
                                                     <div className="mb-4">
-                                                        <h4 className="text-xs font-black text-orange-400 uppercase tracking-widest mb-2">
+                                                        <h4 className="text-xs font-black text-emerald-400 uppercase tracking-widest mb-2">
                                                             {game.teamAName} Statline
                                                         </h4>
                                                         <div className="overflow-x-auto">
@@ -1737,7 +1821,7 @@
 
                                                     {/* Team B Boxscore Summary */}
                                                     <div>
-                                                        <h4 className="text-xs font-black text-blue-400 uppercase tracking-widest mb-2">
+                                                        <h4 className="text-xs font-black text-red-400 uppercase tracking-widest mb-2">
                                                             {game.teamBName} Statline
                                                         </h4>
                                                         <div className="overflow-x-auto">
@@ -1807,7 +1891,7 @@
                                     
                                     {/* Category: PPG Leaders */}
                                     <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
-                                        <h4 className="font-extrabold text-xs uppercase tracking-widest text-orange-400 border-b border-slate-800 pb-2 mb-4 flex justify-between">
+                                        <h4 className="font-extrabold text-xs uppercase tracking-widest text-emerald-400 border-b border-slate-800 pb-2 mb-4 flex justify-between">
                                             <span>Scoring (PPG)</span>
                                             <span>POINTS</span>
                                         </h4>
@@ -1825,7 +1909,7 @@
                                                                 <span className="text-[10px] text-slate-500">{player.teamName}</span>
                                                             </div>
                                                         </div>
-                                                        <span className="font-mono font-bold text-orange-400 bg-orange-500/10 px-2.5 py-0.5 rounded">
+                                                        <span className="font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded">
                                                             {player.avg.pts}
                                                         </span>
                                                     </div>
@@ -1863,7 +1947,7 @@
 
                                     {/* Category: APG Leaders */}
                                     <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
-                                        <h4 className="font-extrabold text-xs uppercase tracking-widest text-blue-400 border-b border-slate-800 pb-2 mb-4 flex justify-between">
+                                        <h4 className="font-extrabold text-xs uppercase tracking-widest text-emerald-400 border-b border-slate-800 pb-2 mb-4 flex justify-between">
                                             <span>Playmakers (APG)</span>
                                             <span>ASSISTS</span>
                                         </h4>
@@ -1881,7 +1965,7 @@
                                                                 <span className="text-[10px] text-slate-500">{player.teamName}</span>
                                                             </div>
                                                         </div>
-                                                        <span className="font-mono font-bold text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded">
+                                                        <span className="font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded">
                                                             {player.avg.ast}
                                                         </span>
                                                     </div>
@@ -1915,12 +1999,12 @@
                                                                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: p.teamColor }} />
                                                                     {p.name} <span className="text-slate-500 font-mono">#{p.number}</span>
                                                                 </span>
-                                                                <span className="font-mono text-orange-400 font-bold">{p.avg.pts} PPG</span>
+                                                                <span className="font-mono text-emerald-400 font-bold">{p.avg.pts} PPG</span>
                                                             </div>
                                                             <div className="w-full h-2.5 bg-slate-950 rounded-full overflow-hidden">
                                                                 <div 
                                                                     className="h-full rounded-full transition-all duration-500"
-                                                                    style={{ width: `${pct}%`, backgroundColor: p.teamColor || '#f97316' }}
+                                                                    style={{ width: `${pct}%`, backgroundColor: p.teamColor || '#10b981' }}
                                                                 />
                                                             </div>
                                                         </div>
@@ -1983,7 +2067,7 @@
                                         </button>
                                         <button 
                                             type="submit" 
-                                            className="flex-1 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl transition-colors shadow-lg shadow-orange-500/10 cursor-pointer"
+                                            className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl transition-colors shadow-lg shadow-emerald-500/10 cursor-pointer"
                                         >
                                             Create Team
                                         </button>
@@ -2049,7 +2133,7 @@
                                         </button>
                                         <button 
                                             type="submit" 
-                                            className="flex-1 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl transition-colors shadow-lg shadow-orange-500/10 cursor-pointer"
+                                            className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl transition-colors shadow-lg shadow-emerald-500/10 cursor-pointer"
                                         >
                                             Register Player
                                         </button>
@@ -2087,13 +2171,13 @@
                                                 <button 
                                                     key={benchId}
                                                     onClick={() => executeSubstitution(subTargetPlayer.id, benchId, subTargetPlayer.team === 'A')}
-                                                    className="w-full text-xs flex items-center justify-between p-3.5 bg-slate-950 hover:bg-orange-500/10 hover:border-orange-500/40 group rounded-xl border border-slate-850 transition-all text-left cursor-pointer"
+                                                    className="w-full text-xs flex items-center justify-between p-3.5 bg-slate-950 hover:bg-emerald-500/10 hover:border-emerald-500/40 group rounded-xl border border-slate-850 transition-all text-left cursor-pointer"
                                                 >
                                                     <div>
                                                         <span className="font-bold text-slate-200 group-hover:text-white transition-colors">{player.name}</span>
-                                                        <span className="text-[10px] text-slate-500 group-hover:text-orange-200 block transition-colors">Jersey #{player.number}</span>
+                                                        <span className="text-[10px] text-slate-500 group-hover:text-emerald-200 block transition-colors">Jersey #{player.number}</span>
                                                     </div>
-                                                    <span className="text-[10px] font-bold text-orange-400 group-hover:text-white transition-colors flex items-center gap-1">
+                                                    <span className="text-[10px] font-bold text-emerald-400 group-hover:text-white transition-colors flex items-center gap-1">
                                                         Sub In <Icons.ChevronRight />
                                                     </span>
                                                 </button>
@@ -2125,12 +2209,12 @@
                                     <span className={`px-3 py-1 text-xs rounded-full font-bold uppercase tracking-widest font-mono border ${
                                         correctionMode 
                                         ? 'bg-red-950/80 border-red-800 text-red-400' 
-                                        : 'bg-orange-500/10 border-orange-500/20 text-orange-400'
+                                        : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
                                     }`}>
                                         {correctionMode ? '🔄 CORRECTION MODE' : '🎯 RECORD ACTION'}
                                     </span>
                                     <h3 className="text-xl font-black mt-3 text-white">
-                                        Select Player to Log: <span className="text-orange-400 font-mono">{activeAction.label}</span>
+                                        Select Player to Log: <span className="text-emerald-400 font-mono">{activeAction.label}</span>
                                     </h3>
                                     <p className="text-slate-400 text-xs mt-1">Tap any active on-court player to apply this statistic.</p>
                                 </div>
@@ -2152,12 +2236,12 @@
                                                     <button
                                                         key={playerId}
                                                         onClick={() => handlePlayerClick(playerId, true)}
-                                                        className="w-full p-3.5 bg-slate-900 hover:bg-orange-500/10 border border-slate-800 hover:border-orange-500/40 rounded-xl flex items-center gap-3 transition-all text-left font-bold text-white group cursor-pointer"
+                                                        className="w-full p-3.5 bg-slate-900 hover:bg-emerald-500/10 border border-slate-800 hover:border-emerald-500/40 rounded-xl flex items-center gap-3 transition-all text-left font-bold text-white group cursor-pointer"
                                                     >
                                                         <span className="font-mono text-xs text-slate-400 bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-850">
                                                             #{player.number}
                                                         </span>
-                                                        <span className="truncate group-hover:text-orange-300 transition-colors">{player.name}</span>
+                                                        <span className="truncate group-hover:text-emerald-300 transition-colors">{player.name}</span>
                                                     </button>
                                                 );
                                             })}
@@ -2180,12 +2264,12 @@
                                                     <button
                                                         key={playerId}
                                                         onClick={() => handlePlayerClick(playerId, false)}
-                                                        className="w-full p-3.5 bg-slate-900 hover:bg-orange-500/10 border border-slate-800 hover:border-orange-500/40 rounded-xl flex items-center gap-3 transition-all text-left font-bold text-white group cursor-pointer"
+                                                        className="w-full p-3.5 bg-slate-900 hover:bg-emerald-500/10 border border-slate-800 hover:border-emerald-500/40 rounded-xl flex items-center gap-3 transition-all text-left font-bold text-white group cursor-pointer"
                                                     >
                                                         <span className="font-mono text-xs text-slate-400 bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-850">
                                                             #{player.number}
                                                         </span>
-                                                        <span className="truncate group-hover:text-orange-300 transition-colors">{player.name}</span>
+                                                        <span className="truncate group-hover:text-emerald-300 transition-colors">{player.name}</span>
                                                     </button>
                                                 );
                                             })}
