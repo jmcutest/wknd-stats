@@ -212,6 +212,9 @@
             const [activeAction, setActiveAction] = useState(null); 
             const [correctionMode, setCorrectionMode] = useState(false); 
 
+            // Active mobile tab for live console tracking
+            const [activeMobileConsoleTab, setActiveMobileConsoleTab] = useState('home');
+
             // Clock Management
             const [timerSeconds, setTimerSeconds] = useState(600);
             const [isTimerRunning, setIsTimerRunning] = useState(false);
@@ -232,6 +235,57 @@
 
             // Custom UI dialog states replacing browser alerts
             const [confirmDialog, setConfirmDialog] = useState(null); // { title, text, onConfirm }
+
+            // BACKUP UTILITIES FOR DATA PORTABILITY
+            const handleExportData = () => {
+                try {
+                    const backupData = {
+                        teams: teams,
+                        games: games
+                    };
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData));
+                    const downloadAnchor = document.createElement('a');
+                    downloadAnchor.setAttribute("href", dataStr);
+                    downloadAnchor.setAttribute("download", `league_stats_backup_${new Date().toISOString().split('T')[0]}.json`);
+                    document.body.appendChild(downloadAnchor);
+                    downloadAnchor.click();
+                    downloadAnchor.remove();
+                    showToast("Database backup file downloaded!", "success");
+                } catch (e) {
+                    showToast("Failed to compile database export.", "error");
+                }
+            };
+
+            const handleImportData = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const fileReader = new FileReader();
+                fileReader.readAsText(file, "UTF-8");
+                fileReader.onload = (event) => {
+                    try {
+                        const parsedData = JSON.parse(event.target.result);
+                        if (parsedData && Array.isArray(parsedData.teams)) {
+                            // Save teams securely to storage
+                            saveTeamState(parsedData.teams);
+                            
+                            // Load games safely
+                            if (Array.isArray(parsedData.games)) {
+                                setGames(parsedData.games);
+                                if (!window.firebaseDb) {
+                                    localStorage.setItem('stat_games', JSON.stringify(parsedData.games));
+                                }
+                            }
+                            
+                            showToast("Database backup successfully restored!", "success");
+                        } else {
+                            showToast("Invalid backup file format.", "error");
+                        }
+                    } catch (err) {
+                        showToast("Failed to parse system backup file.", "error");
+                    }
+                };
+            };
 
             useEffect(() => {
                 const appId = typeof __app_id !== 'undefined' ? __app_id : 'wknd-league-stats';
@@ -1061,11 +1115,41 @@
 
                                         </div>
 
+                                        {/* Mobile Console Team Switcher Tabs (Only visible on mobile screens) */}
+                                        <div className="col-span-12 md:hidden flex bg-slate-950 p-1.5 rounded-2xl border border-slate-850 gap-1 shadow-inner">
+                                            <button
+                                                type="button"
+                                                onClick={() => setActiveMobileConsoleTab('home')}
+                                                style={activeMobileConsoleTab === 'home' ? { backgroundColor: teams.find(t => t.id === teamAId)?.color || '#f97316' } : {}}
+                                                className={`flex-1 py-3 text-center text-xs font-black rounded-xl transition-all ${
+                                                    activeMobileConsoleTab === 'home'
+                                                    ? 'text-white shadow-lg'
+                                                    : 'text-slate-400 hover:text-slate-200'
+                                                }`}
+                                            >
+                                                🏠 {teams.find(t => t.id === teamAId)?.name || 'Home'}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setActiveMobileConsoleTab('away')}
+                                                style={activeMobileConsoleTab === 'away' ? { backgroundColor: teams.find(t => t.id === teamBId)?.color || '#3b82f6' } : {}}
+                                                className={`flex-1 py-3 text-center text-xs font-black rounded-xl transition-all ${
+                                                    activeMobileConsoleTab === 'away'
+                                                    ? 'text-white shadow-lg'
+                                                    : 'text-slate-400 hover:text-slate-200'
+                                                }`}
+                                            >
+                                                🚌 {teams.find(t => t.id === teamBId)?.name || 'Away'}
+                                            </button>
+                                        </div>
+
                                         {/* Main Side-by-Side Court Deck */}
                                         <div className="col-span-12 lg:col-span-9 grid grid-cols-1 md:grid-cols-2 gap-5">
                                             
                                             {/* HOME TEAM CONTROLLERS */}
-                                            <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl space-y-4">
+                                            <div className={`bg-slate-900/80 border border-slate-800 p-4 rounded-2xl space-y-4 ${
+                                                activeMobileConsoleTab === 'home' ? 'block' : 'hidden md:block'
+                                            }`}>
                                                 <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
                                                     <div className="flex items-center gap-2">
                                                         <span className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: teams.find(t => t.id === teamAId)?.color }} />
@@ -1112,7 +1196,9 @@
                                             </div>
 
                                             {/* AWAY TEAM CONTROLLERS */}
-                                            <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl space-y-4">
+                                            <div className={`bg-slate-900/80 border border-slate-800 p-4 rounded-2xl space-y-4 ${
+                                                activeMobileConsoleTab === 'away' ? 'block' : 'hidden md:block'
+                                            }`}>
                                                 <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
                                                     <div className="flex items-center gap-2">
                                                         <span className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: teams.find(t => t.id === teamBId)?.color }} />
@@ -1246,7 +1332,28 @@
                                         <h3 className="text-xl font-bold text-white">League Franchise Rosters</h3>
                                         <p className="text-xs text-slate-400">Add or remove league franchises, customize rosters, and inspect career logs.</p>
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="flex flex-wrap gap-2">
+                                        <button 
+                                            onClick={handleExportData}
+                                            className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                                            title="Download all league rosters and match history"
+                                        >
+                                            <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+                                            Export Backup
+                                        </button>
+                                        <label 
+                                            className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer relative"
+                                            title="Upload and restore a league backup file"
+                                        >
+                                            <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"/></svg>
+                                            Import Backup
+                                            <input 
+                                                type="file" 
+                                                accept=".json" 
+                                                onChange={handleImportData} 
+                                                className="hidden" 
+                                            />
+                                        </label>
                                         <button 
                                             onClick={() => setShowNewTeamModal(true)}
                                             className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer"
