@@ -144,9 +144,9 @@
 
         const STAT_ACTIONS = [
             // Scoring
-            { id: 'pts_1', label: '+1 FT', category: 'score', stat: 'pts', val: 1, colorClass: 'bg-emerald-650 hover:bg-emerald-600 text-white border-emerald-500' },
+            { id: 'pts_1', label: '+1 FT', category: 'score', stat: 'pts', val: 1, colorClass: 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500' },
             { id: 'pts_2', label: '+2 PTS', category: 'score', stat: 'pts', val: 2, colorClass: 'bg-orange-600 hover:bg-orange-500 text-white border-orange-400' },
-            { id: 'pts_3', label: '+3 PTS', category: 'score', stat: 'pts', val: 3, colorClass: 'bg-indigo-650 hover:bg-indigo-600 text-white border-indigo-500' },
+            { id: 'pts_3', label: '+3 PTS', category: 'score', stat: 'pts', val: 3, colorClass: 'bg-indigo-600 hover:bg-indigo-500 text-white border-indigo-500' },
             // Misses
             { id: 'fg2m', label: '2PT Miss', category: 'miss', stat: 'fg2m', val: 1, colorClass: 'bg-rose-900 hover:bg-rose-800 text-rose-100 border-rose-700' },
             { id: 'fg3m', label: '3PT Miss', category: 'miss', stat: 'fg3m', val: 1, colorClass: 'bg-pink-900 hover:bg-pink-800 text-pink-100 border-pink-700' },
@@ -540,7 +540,7 @@
                 }
                 setTeams(prev => prev.map(t => {
                     if (t.id === teamId) {
-                        return { ...t, players: p.players.filter(p => p.id !== playerId) };
+                        return { ...t, players: t.players.filter(playerItem => playerItem.id !== playerId) };
                     }
                     return t;
                 }));
@@ -612,7 +612,7 @@
                             </div>
                         </div>
 
-                        {/* Real-Time Live Statline (Consolidated into a gorgeous single-line layout) */}
+                        {/* Real-Time Live Statline */}
                         <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-mono font-bold bg-slate-900/60 px-3 py-2 rounded-xl border border-slate-850/80">
                             <span className="text-orange-400">PTS: <span className="text-white text-xs">{stats.pts}</span></span>
                             <span className="text-slate-600">•</span>
@@ -630,7 +630,7 @@
                                 PF: {stats.pf}/5
                             </span>
                             <span className="text-slate-600">•</span>
-                            <span className="text-red-400">MISS: <span className="text-rose-100">{stats.fg2m || 0} (2PT)</span> / <span className="text-rose-100">{stats.fg3m || 0} (3PT)</span></span>
+                            <span className="text-red-400">MISS: <span className="text-rose-100">{stats.fg2m || 0} (2P)</span> / <span className="text-rose-100">{stats.fg3m || 0} (3P)</span></span>
                         </div>
                     </div>
                 );
@@ -796,13 +796,13 @@
                                         </div>
                                     </div>
                                 ) : (
-                                    /* LIVE GAME MODE: NEW ACTION-FIRST SPLIT INTERFACE */
+                                    /* LIVE GAME MODE: ACTION-FIRST SPLIT INTERFACE */
                                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                                         
-                                        {}
+                                        {/* Score Banner Row */}
                                         <div className="col-span-12 grid grid-cols-1 lg:grid-cols-3 gap-5 items-center bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-2xl">
                                             
-                                            {/* Score Banner Row */}
+                                            {/* Score Viewboard */}
                                             <div className="lg:col-span-2 grid grid-cols-7 items-center bg-slate-950 border border-slate-900 p-4 rounded-xl">
                                                 
                                                 {/* TEAM A SCORE */}
@@ -868,7 +868,7 @@
 
                                         </div>
 
-                                        {}
+                                        {/* Action Deck Selection */}
                                         <div className="col-span-12 bg-slate-900/95 border border-orange-500/25 p-5 rounded-2xl shadow-xl space-y-4">
                                             
                                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800 pb-3">
@@ -879,7 +879,7 @@
                                                     <h3 className="text-sm font-extrabold text-white mt-1">Select any stat action from the categories below</h3>
                                                 </div>
 
-                                                {/* Correction Mode Control Switch */}
+                                                {/* Correction Mode Switch */}
                                                 <button 
                                                     onClick={() => setCorrectionMode(!correctionMode)}
                                                     className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 border cursor-pointer ${
@@ -895,7 +895,7 @@
                                                 </button>
                                             </div>
 
-                                            {/* stat actions button groupings */}
+                                            {/* Stat Action Grids */}
                                             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
                                                 {STAT_ACTIONS.map(act => {
                                                     const isArmed = activeAction?.id === act.id;
@@ -918,7 +918,7 @@
                                                 })}
                                             </div>
 
-                                            {/* Guidance Alert Panel */}
+                                            {/* Guidance Panels */}
                                             {activeAction ? (
                                                 <div className="bg-orange-500/10 border border-orange-500/30 p-3 rounded-xl flex items-center justify-between text-xs animate-bounce">
                                                     <span className="text-orange-300 font-extrabold flex items-center gap-2">
@@ -934,7 +934,7 @@
 
                                         </div>
 
-                                        {}
+                                        {/* Main Side-by-Side Court Deck */}
                                         <div className="col-span-12 lg:col-span-9 grid grid-cols-1 md:grid-cols-2 gap-5">
                                             
                                             {/* HOME TEAM CONTROLLERS */}
@@ -1033,7 +1033,7 @@
 
                                         </div>
 
-                                        {}
+                                        {/* Right Sidebar Logger Feed */}
                                         <div className="col-span-12 lg:col-span-3 space-y-4 flex flex-col justify-between">
                                             
                                             {/* Play-by-Play Activity Feed */}
@@ -1059,7 +1059,7 @@
                                                 </div>
                                             </div>
 
-                                            {/* Game Controls Finalize Box */}
+                                            {/* Game Controls Save Box */}
                                             <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-4">
                                                 <div>
                                                     <h4 className="font-extrabold text-xs text-slate-200 uppercase tracking-wider">Save Box Score</h4>
