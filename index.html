@@ -162,6 +162,7 @@
             const [activeAction, setActiveAction] = useState(null); 
             const [correctionMode, setCorrectionMode] = useState(false); 
             const [showLoggingModal, setShowLoggingModal] = useState(false);
+            const [foulAlert, setFoulAlert] = useState(null);
 
             const [activeMobileConsoleTab, setActiveMobileConsoleTab] = useState('home');
 
@@ -539,6 +540,14 @@
                         playerUpdate[attachedTrackingStat] = Math.max(0, currentTrackVal + (1 * multiplier));
                     }
 
+                    if (statField === 'pf' && multiplier > 0) {
+                        if (newVal === 4) {
+                            setFoulAlert({ playerName: playerObj?.name, playerNumber: playerObj?.number, type: 'warning', count: 4 });
+                        } else if (newVal >= 5) {
+                            setFoulAlert({ playerName: playerObj?.name, playerNumber: playerObj?.number, type: 'fouled_out', count: 5 });
+                        }
+                    }
+
                     const updated = { ...prev, [playerId]: playerUpdate };
                     let totalA = 0, totalB = 0;
                     const teamAObj = teams.find(t => t.id === teamAId);
@@ -720,23 +729,63 @@
                 const teamObj = isTeamA ? teams.find(t => t.id === teamAId) : teams.find(t => t.id === teamBId);
                 const player = teamObj?.players.find(p => p.id === playerId);
                 if (!player) return null;
-                const stats = liveStats[playerId] || { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0 };
+                const stats = liveStats[playerId] || { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 };
+                const currentPct = computeShootingPercentages(liveStats[playerId] || {});
+
+                const hasActionArmed = activeAction !== null;
+                const isFoulTrouble = stats.pf === 4;
+                const isFouledOut = stats.pf >= 5;
 
                 return (
-                    <div key={player.id} className="bg-slate-950/90 border border-slate-800 p-3 rounded-xl flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                            <span className="font-mono text-xs font-bold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">#{player.number}</span>
-                            <span className="font-extrabold text-xs text-white truncate block">{player.name}</span>
-                        </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                            <div className="flex gap-1.5 text-[10px] font-mono bg-slate-900 px-2 py-1 rounded border border-slate-800 text-slate-400">
-                                <span>P: <strong className="text-white">{stats.pts}</strong></span>
-                                <span>R: <strong className="text-white">{stats.reb}</strong></span>
-                                <span>A: <strong className="text-white">{stats.ast}</strong></span>
+                    <div 
+                        key={player.id} 
+                        onClick={() => hasActionArmed && handlePlayerClick(player.id, isTeamA)}
+                        className={`bg-slate-950/90 border p-3.5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all select-none ${
+                            isFouledOut ? 'opacity-50 border-red-900 bg-red-950/10' : 'border-slate-800 hover:border-slate-700/60'
+                        } ${
+                            hasActionArmed && !isFouledOut
+                            ? 'armed-target hover:bg-slate-900 border-emerald-500/50' 
+                            : ''
+                        }`}
+                    >
+                        <div className="flex items-center gap-3 flex-shrink-0">
+                            <span className="font-mono text-xs font-bold text-slate-300 bg-slate-900 px-2.5 py-1 rounded-xl border border-slate-800">#{player.number}</span>
+                            <div className="min-w-0">
+                                <div className="flex items-center gap-2">
+                                    <span className="font-extrabold text-sm text-white block truncate">{player.name}</span>
+                                    {isFoulTrouble && (
+                                        <span className="bg-amber-500/20 text-amber-400 text-[9px] px-1.5 py-0.5 rounded border border-amber-500/30 font-bold animate-pulse flex-shrink-0">
+                                            ⚠️ 4 PF
+                                        </span>
+                                    )}
+                                    {isFouledOut && (
+                                        <span className="bg-red-500/20 text-red-400 text-[9px] px-1.5 py-0.5 rounded border border-red-500/30 font-bold flex-shrink-0 animate-bounce">
+                                            🚨 OUT (5 PF)
+                                        </span>
+                                    )}
+                                </div>
+                                <button onClick={(e) => { e.stopPropagation(); triggerSubModal(player.id, isTeamA); }} className="text-[10px] text-orange-400 hover:text-orange-300 font-bold flex items-center gap-1 mt-0.5 cursor-pointer">
+                                    <Icons.ArrowRightLeft /> Substitute
+                                </button>
                             </div>
-                            <button onClick={() => triggerSubModal(player.id, isTeamA)} className="text-[10px] bg-slate-900 hover:bg-slate-800 border border-slate-800 text-orange-400 px-2 py-1 rounded font-bold flex items-center gap-1">
-                                <Icons.ArrowRightLeft /> Sub
-                            </button>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-mono font-bold bg-slate-900/60 px-3 py-2 rounded-xl border border-slate-850/80">
+                            <span className="text-orange-400">PTS: <span className="text-white text-xs">{stats.pts}</span></span>
+                            <span className="text-slate-600">•</span>
+                            <span className="text-emerald-400">FG%: <span className="text-white">{currentPct.fgPct}</span></span>
+                            <span className="text-slate-600">•</span>
+                            <span className="text-cyan-400">3P%: <span className="text-white">{currentPct.fg3Pct}</span></span>
+                            <span className="text-slate-600">•</span>
+                            <span className="text-emerald-400">REB: <span className="text-white">{stats.reb}</span></span>
+                            <span className="text-slate-600">•</span>
+                            <span className="text-blue-400">AST: <span className="text-white">{stats.ast}</span></span>
+                            <span className="text-slate-600">•</span>
+                            <span className="text-amber-500">TO: <span className="text-white">{stats.to}</span></span>
+                            <span className="text-slate-600">•</span>
+                            <span className={`px-1.5 py-0.5 rounded ${stats.pf >= 4 ? 'bg-red-950 text-red-400 border border-red-900' : 'text-slate-400'}`}>
+                                PF: {stats.pf}/5
+                            </span>
                         </div>
                     </div>
                 );
@@ -1277,6 +1326,37 @@
                                     <button onClick={() => setConfirmDialog(null)} className="flex-1 py-2 bg-slate-950 text-slate-400 rounded-xl border border-slate-850">Cancel</button>
                                     <button onClick={confirmDialog.onConfirm} className="flex-1 py-2 bg-red-600 text-white rounded-xl">Confirm</button>
                                 </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {foulAlert && (
+                        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+                            <div className={`border p-6 rounded-2xl w-full max-w-sm shadow-2xl relative my-auto text-center transform scale-100 transition-transform ${
+                                foulAlert.type === 'fouled_out' ? 'bg-red-950/95 border-red-500' : 'bg-amber-950/95 border-amber-500'
+                            }`}>
+                                <div className="flex justify-center mb-3 text-4xl">
+                                    {foulAlert.type === 'fouled_out' ? '🚨' : '⚠️'}
+                                </div>
+                                <h3 className="text-base font-extrabold text-white mb-1 uppercase tracking-wider">
+                                    {foulAlert.type === 'fouled_out' ? 'Athlete Fouled Out' : 'Foul Trouble Warning'}
+                                </h3>
+                                <p className="text-slate-300 text-xs font-semibold mb-4 leading-relaxed">
+                                    #{foulAlert.playerNumber} {foulAlert.playerName} has committed personal foul #{foulAlert.count}!
+                                </p>
+                                {foulAlert.type === 'fouled_out' ? (
+                                    <p className="text-red-400 text-[11px] font-bold mb-6">This athlete has reached 5 fouls and is disqualified from the match.</p>
+                                ) : (
+                                    <p className="text-amber-400 text-[11px] font-bold mb-6">Careful! One more personal foul will result in disqualification.</p>
+                                )}
+                                <button 
+                                    onClick={() => setFoulAlert(null)}
+                                    className={`w-full py-2 rounded-xl text-xs font-bold text-white transition-all shadow-md cursor-pointer ${
+                                        foulAlert.type === 'fouled_out' ? 'bg-red-600 hover:bg-red-500 shadow-red-500/15' : 'bg-amber-600 hover:bg-amber-500 shadow-amber-500/15'
+                                    }`}
+                                >
+                                    Acknowledge
+                                </button>
                             </div>
                         </div>
                     )}
