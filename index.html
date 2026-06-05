@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -55,7 +56,6 @@
     <div id="root"></div>
 
     <script type="module">
-        /* STREAMING_CHUNK: Initializing Firebase configuration */
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -81,7 +81,6 @@
     </script>
 
     <script type="text/babel">
-        /* STREAMING_CHUNK: Configuring custom icons & baseline components */
         const { useState, useEffect, useRef } = React;
 
         const Icons = {
@@ -94,7 +93,7 @@
             Activity: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,
             ChevronRight: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>,
             Trash: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>,
-            UserPlus: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>,
+            UserPlus: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>,
             FolderPlus: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>,
             ArrowRightLeft: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m16 3 4 4-4 4M20 7H4M8 21l-4-4 4-4M4 17h16"/></svg>,
             Zap: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
@@ -125,22 +124,21 @@
         ];
 
         const STAT_ACTIONS = [
-            { id: 'pts_1', label: '+1 FT', category: 'score', stat: 'pts', val: 1, colorClass: 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500 shadow-sm' },
-            { id: 'pts_2', label: '2pt Made', category: 'score', stat: 'pts', val: 2, colorClass: 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500 shadow-md', trackingStat: 'fg2m' },
-            { id: 'pts_3', label: '3pt Made', category: 'score', stat: 'pts', val: 3, colorClass: 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500 shadow-md', trackingStat: 'fg3m' },
+            { id: 'pts_1', label: '+1 FT', category: 'score', stat: 'pts', val: 1, colorClass: 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500' },
+            { id: 'pts_2', label: '2pt Made', category: 'score', stat: 'pts', val: 2, colorClass: 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500', trackingStat: 'fg2m' },
+            { id: 'pts_3', label: '3pt Made', category: 'score', stat: 'pts', val: 3, colorClass: 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500', trackingStat: 'fg3m' },
             
-            { id: 'ast', label: '+1 AST', category: 'play', stat: 'ast', val: 1, colorClass: 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-600 shadow-sm' },
-            { id: 'reb', label: '+1 REB', category: 'play', stat: 'reb', val: 1, colorClass: 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-600 shadow-sm' },
-            { id: 'stl', label: '+1 STL', category: 'play', stat: 'stl', val: 1, colorClass: 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-600 shadow-sm' },
-            { id: 'blk', label: '+1 BLK', category: 'play', stat: 'blk', val: 1, colorClass: 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-600 shadow-sm' },
+            { id: 'ast', label: '+1 AST', category: 'play', stat: 'ast', val: 1, colorClass: 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-600' },
+            { id: 'reb', label: '+1 REB', category: 'play', stat: 'reb', val: 1, colorClass: 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-600' },
+            { id: 'stl', label: '+1 STL', category: 'play', stat: 'stl', val: 1, colorClass: 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-600' },
+            { id: 'blk', label: '+1 BLK', category: 'play', stat: 'blk', val: 1, colorClass: 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-600' },
             
-            { id: 'fg2m_miss', label: '2pt Miss', category: 'miss', stat: 'fg2m_miss', val: 1, colorClass: 'bg-red-600 hover:bg-red-500 text-white border-red-500 shadow-md' },
-            { id: 'fg3m_miss', label: '3pt Miss', category: 'miss', stat: 'fg3m_miss', val: 1, colorClass: 'bg-red-600 hover:bg-red-500 text-white border-red-500 shadow-md' },
-            { id: 'to', label: '+1 TO', category: 'deficit', stat: 'to', val: 1, colorClass: 'bg-red-700 hover:bg-red-600 text-white border-red-600 shadow-sm' },
-            { id: 'pf', label: '+1 FOUL', category: 'deficit', stat: 'pf', val: 1, colorClass: 'bg-red-800 hover:bg-red-700 text-white border-red-700 shadow-sm' }
+            { id: 'fg2m_miss', label: '2pt Miss', category: 'miss', stat: 'fg2m_miss', val: 1, colorClass: 'bg-red-600 hover:bg-red-500 text-white border-red-500' },
+            { id: 'fg3m_miss', label: '3pt Miss', category: 'miss', stat: 'fg3m_miss', val: 1, colorClass: 'bg-red-600 hover:bg-red-500 text-white border-red-500' },
+            { id: 'to', label: '+1 TO', category: 'deficit', stat: 'to', val: 1, colorClass: 'bg-red-700 hover:bg-red-600 text-white border-red-650' },
+            { id: 'pf', label: '+1 FOUL', category: 'deficit', stat: 'pf', val: 1, colorClass: 'bg-red-800 hover:bg-red-700 text-white border-red-700' }
         ];
 
-        /* STREAMING_CHUNK: Setting up App Component states and confirmation boxes */
         function App() {
             const [teams, setTeams] = useState([]);
             const [games, setGames] = useState([]);
@@ -169,8 +167,8 @@
             const [activeMobileConsoleTab, setActiveMobileConsoleTab] = useState('home');
 
             // Historic Boxscore Editing States
-            const [editingGame, setEditingGame] = useState(null); // Game object being edited
-            const [editStatsTemp, setEditStatsTemp] = useState({}); // Temporary Copy Copy Copy
+            const [editingGame, setEditingGame] = useState(null); 
+            const [editStatsTemp, setEditStatsTemp] = useState({}); 
             const [expandedEditPlayerId, setExpandedEditPlayerId] = useState(null);
 
             const [showNewTeamModal, setShowNewTeamModal] = useState(false);
@@ -185,8 +183,8 @@
             const [showSubstitutionModal, setShowSubstitutionModal] = useState(false);
             const [subTargetPlayer, setSubTargetPlayer] = useState(null); 
 
-            // Modal alert system for 4th and 5th personal fouls
-            const [foulAlert, setFoulAlert] = useState(null); // { playerName, number, fouls, type: 'warning' | 'disqualified' }
+            // Modal Alert System for 4th and 5th personal fouls
+            const [foulAlert, setFoulAlert] = useState(null);
 
             const [confirmDialog, setConfirmDialog] = useState(null);
 
@@ -213,92 +211,6 @@
                 };
             }, [showNewTeamModal, showNewPlayerModal, showSubstitutionModal, showLoggingModal, confirmDialog, foulAlert]);
 
-            const handleExportData = () => {
-                try {
-                    const backupData = { teams, games };
-                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData));
-                    const downloadAnchor = document.createElement('a');
-                    downloadAnchor.setAttribute("href", dataStr);
-                    downloadAnchor.setAttribute("download", `league_stats_backup_${new Date().toISOString().split('T')[0]}.json`);
-                    document.body.appendChild(downloadAnchor);
-                    downloadAnchor.click();
-                    downloadAnchor.remove();
-                    showToast("Database backup file downloaded!", "success");
-                } catch (e) {
-                    showToast("Failed to export database.", "error");
-                }
-            };
-
-            const handleImportData = (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                const fileReader = new FileReader();
-                fileReader.readAsText(file, "UTF-8");
-                fileReader.onload = (event) => {
-                    try {
-                        const parsedData = JSON.parse(event.target.result);
-                        if (parsedData && Array.isArray(parsedData.teams)) {
-                            saveTeamState(parsedData.teams);
-                            if (Array.isArray(parsedData.games)) {
-                                setGames(parsedData.games);
-                                if (!window.firebaseDb) {
-                                    localStorage.setItem('stat_games', JSON.stringify(parsedData.games));
-                               }
-                            }
-                            showToast("Database backup successfully restored!", "success");
-                        }
-                    } catch (err) {
-                        showToast("Failed to parse system backup file.", "error");
-                    }
-                };
-            };
-
-            const handleExportRostersOnly = () => {
-                try {
-                    const rostersOnly = teams.map(t => ({
-                        id: t.id,
-                        name: t.name,
-                        color: t.color,
-                        players: t.players.map(p => ({
-                            id: p.id,
-                            name: p.name,
-                            number: p.number,
-                            gamesPlayed: 0,
-                            totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 }
-                        }))
-                    }));
-                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(rostersOnly));
-                    const downloadAnchor = document.createElement('a');
-                    downloadAnchor.setAttribute("href", dataStr);
-                    downloadAnchor.setAttribute("download", `league_rosters_${new Date().toISOString().split('T')[0]}.json`);
-                    document.body.appendChild(downloadAnchor);
-                    downloadAnchor.click();
-                    downloadAnchor.remove();
-                    showToast("Roster templates exported!", "success");
-                } catch (e) {
-                    showToast("Failed to compile roster export.", "error");
-                }
-            };
-
-            const handleImportRostersOnly = (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                const fileReader = new FileReader();
-                fileReader.readAsText(file, "UTF-8");
-                fileReader.onload = (event) => {
-                    try {
-                        const parsedRosters = JSON.parse(event.target.result);
-                        if (parsedRosters && Array.isArray(parsedRosters)) {
-                            saveTeamState(parsedRosters);
-                            showToast("Team rosters imported!", "success");
-                        }
-                    } catch (err) {
-                        showToast("Failed to process roster upload.", "error");
-                    }
-                };
-            };
-
-            /* STREAMING_CHUNK: Building custom CSV reader */
             const handleImportCSV = (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
@@ -307,20 +219,32 @@
                 reader.onload = (event) => {
                     try {
                         const text = event.target.result;
-                        // Split line breaks and parse CSV columns
-                        const lines = text.split('\n').map(line => line.split(',').map(cell => cell.trim().replace(/^["']|["']$/g, '')));
+                        const lines = text.split('\n')
+                            .map(line => line.split(',')
+                                .map(cell => cell.trim().replace(/^["']|["']$/g, ''))
+                            )
+                            .filter(row => row.length > 1 && row.some(cell => cell !== ""));
+                        
                         if (lines.length < 2) {
                             showToast("CSV file is empty or invalid.", "error");
                             return;
                         }
                         
-                        const headers = lines[0].map(h => h.toLowerCase());
+                        const headers = lines[0].map(h => h.toLowerCase().trim().replace(/^["']|["']$/g, ''));
                         const teamIndex = headers.findIndex(h => h.includes('team'));
-                        const nameIndex = headers.findIndex(h => h.includes('name') || h.includes('player'));
-                        const numberIndex = headers.findIndex(h => h.includes('number') || h.includes('jersey') || h.includes('no'));
+                        
+                        // FIX: Explicitly exclude columns with the word "team" when searching for the Player's Name
+                        const nameIndex = headers.findIndex(h => 
+                            h.includes('player') || 
+                            h.includes('athlete') || 
+                            h.includes('member') || 
+                            (h.includes('name') && !h.includes('team'))
+                        );
+                        
+                        const numberIndex = headers.findIndex(h => h.includes('number') || h.includes('jersey') || h.includes('no') || h === '#');
 
                         if (teamIndex === -1 || nameIndex === -1) {
-                            showToast("CSV must have 'Team' and 'Name' columns.", "error");
+                            showToast("CSV must have 'Team' and 'Player Name' columns.", "error");
                             return;
                         }
 
@@ -330,11 +254,11 @@
 
                         for (let i = 1; i < lines.length; i++) {
                             const row = lines[i];
-                            if (row.length < 2 || !row[teamIndex] || !row[nameIndex]) continue;
+                            if (row.length < Math.max(teamIndex, nameIndex) + 1 || !row[teamIndex] || !row[nameIndex]) continue;
 
                             const teamName = row[teamIndex];
                             const playerName = row[nameIndex];
-                            const playerNo = numberIndex !== -1 ? row[numberIndex] : "00";
+                            const playerNo = numberIndex !== -1 && row[numberIndex] ? row[numberIndex] : "0";
 
                             if (!teamMap[teamName]) {
                                 teamMap[teamName] = {
@@ -349,7 +273,7 @@
                             teamMap[teamName].players.push({
                                 id: `player_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
                                 name: playerName,
-                                number: playerNo || "00",
+                                number: playerNo,
                                 gamesPlayed: 0,
                                 totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 }
                             });
@@ -362,87 +286,9 @@
                         }
 
                         saveTeamState(parsedTeams);
-                        showToast(`Imported ${parsedTeams.length} teams from CSV!`, "success");
+                        showToast(`Imported ${parsedTeams.length} teams from CSV successfully!`, "success");
                     } catch (err) {
                         showToast("Failed to parse CSV file.", "error");
-                    }
-                };
-            };
-
-            const handleMergeData = (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                const fileReader = new FileReader();
-                fileReader.readAsText(file, "UTF-8");
-                fileReader.onload = (event) => {
-                    try {
-                        const parsedData = JSON.parse(event.target.result);
-                        if (!parsedData || !Array.isArray(parsedData.teams) || !Array.isArray(parsedData.games)) return;
-
-                        const newGames = parsedData.games.filter(ig => !games.some(lg => lg.id === ig.id));
-                        if (newGames.length === 0) {
-                            showToast("No new game records found to merge.", "info");
-                            return;
-                        }
-
-                        let mergedTeams = JSON.parse(JSON.stringify(teams));
-
-                        parsedData.teams.forEach(importedTeam => {
-                            if (!mergedTeams.some(localTeam => localTeam.id === importedTeam.id)) {
-                                mergedTeams.push(importedTeam);
-                            }
-                        });
-
-                        parsedData.teams.forEach(importedTeam => {
-                            const localTeam = mergedTeams.find(t => t.id === importedTeam.id);
-                            if (localTeam) {
-                                importedTeam.players.forEach(importedPlayer => {
-                                    if (!localTeam.players.some(p => p.id === importedPlayer.id)) {
-                                        const newPlayerObj = {
-                                            ...importedPlayer,
-                                            gamesPlayed: 0,
-                                            totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 }
-                                        };
-                                        localTeam.players.push(newPlayerObj);
-                                    }
-                                });
-                            }
-                        });
-
-                        newGames.forEach(game => {
-                            Object.entries(game.playerStats).forEach(([playerId, stats]) => {
-                                let foundPlayer = null;
-                                for (let t of mergedTeams) {
-                                    foundPlayer = t.players.find(p => p.id === playerId);
-                                    if (foundPlayer) break;
-                                }
-
-                                if (foundPlayer) {
-                                    foundPlayer.gamesPlayed += 1;
-                                    foundPlayer.totalStats.pts += (stats.pts || 0);
-                                    foundPlayer.totalStats.ast += (stats.ast || 0);
-                                    foundPlayer.totalStats.reb += (stats.reb || 0);
-                                    foundPlayer.totalStats.stl += (stats.stl || 0);
-                                    foundPlayer.totalStats.blk += (stats.blk || 0);
-                                    foundPlayer.totalStats.to += (stats.to || 0);
-                                    foundPlayer.totalStats.pf += (stats.pf || 0);
-                                    foundPlayer.totalStats.fg2m = (foundPlayer.totalStats.fg2m || 0) + (stats.fg2m || 0);
-                                    foundPlayer.totalStats.fg3m = (foundPlayer.totalStats.fg3m || 0) + (stats.fg3m || 0);
-                                    foundPlayer.totalStats.fg2m_miss = (foundPlayer.totalStats.fg2m_miss || 0) + (stats.fg2m_miss || 0);
-                                    foundPlayer.totalStats.fg3m_miss = (foundPlayer.totalStats.fg3m_miss || 0) + (stats.fg3m_miss || 0);
-                                }
-                            });
-                        });
-
-                        const mergedGames = [...newGames, ...games].sort((a, b) => b.id.localeCompare(a.id));
-                        saveTeamState(mergedTeams);
-                        setGames(mergedGames);
-                        if (!window.firebaseDb) {
-                            localStorage.setItem('stat_games', JSON.stringify(mergedGames));
-                        }
-                        showToast(`Merged ${newGames.length} new game(s)!`, "success");
-                    } catch (err) {
-                        showToast("Failed to complete data merge.", "error");
                     }
                 };
             };
@@ -594,7 +440,6 @@
                 setIsGameLive(true);
             };
 
-            /* STREAMING_CHUNK: Integrating warning/disqualified modal alert flow */
             const handlePlayerClick = (playerId, isTeamA) => {
                 if (!activeAction) return;
 
@@ -690,7 +535,6 @@
                 setSubTargetPlayer(null);
             };
 
-            /* STREAMING_CHUNK: Aligning historical box scores edits */
             const handleSaveHistoricEdit = (e) => {
                 e.preventDefault();
                 if (!editingGame) return;
@@ -773,45 +617,6 @@
                 showToast("Box score updated and career averages recalculated!", "success");
             };
 
-            const handleEndGame = () => {
-                const teamAObj = teams.find(t => t.id === teamAId);
-                const teamBObj = teams.find(t => t.id === teamBId);
-                if (!teamAObj || !teamBObj) return;
-
-                const newGameEntry = { id: `game_${Date.now()}`, teamAId, teamBId, teamAName: teamAObj.name, teamBName: teamBObj.name, teamAScore, teamBScore, date: new Date().toISOString().split('T')[0], playerStats: liveStats };
-                const updatedTeams = teams.map(t => {
-                    if (t.id !== teamAId && t.id !== teamBId) return t;
-                    const updatedPlayers = t.players.map(p => {
-                        const statObj = liveStats[p.id];
-                        if (!statObj) return p;
-                        return {
-                            ...p,
-                            gamesPlayed: p.gamesPlayed + 1,
-                            totalStats: {
-                                pts: p.totalStats.pts + (statObj.pts || 0),
-                                ast: p.totalStats.ast + (statObj.ast || 0),
-                                reb: p.totalStats.reb + (statObj.reb || 0),
-                                stl: p.totalStats.stl + (statObj.stl || 0),
-                                blk: p.totalStats.blk + (statObj.blk || 0),
-                                to: p.totalStats.to + (statObj.to || 0),
-                                pf: p.totalStats.pf + (statObj.pf || 0),
-                                fg2m: (p.totalStats.fg2m || 0) + (statObj.fg2m || 0),
-                                fg3m: (p.totalStats.fg3m || 0) + (statObj.fg3m || 0),
-                                fg2m_miss: (p.totalStats.fg2m_miss || 0) + (statObj.fg2m_miss || 0),
-                                fg3m_miss: (p.totalStats.fg3m_miss || 0) + (statObj.fg3m_miss || 0)
-                            }
-                        };
-                    });
-                    return { ...t, players: updatedPlayers };
-                });
-
-                saveNewGameState(newGameEntry, updatedTeams);
-                setIsGameLive(false);
-                setActiveAction(null);
-                localStorage.removeItem('active_live_session');
-                setActiveTab('history');
-            };
-
             const handleResetMatch = () => {
                 setConfirmDialog({
                     title: "Clear & Restart Match?",
@@ -868,35 +673,6 @@
                 setShowNewPlayerModal(false);
             };
 
-            const handleDeletePlayer = (teamId, playerId) => {
-                setConfirmDialog({
-                    title: "Delete Athlete?",
-                    text: "Permanently wipe this player profile.",
-                    onConfirm: () => {
-                        const updatedTeams = teams.map(t => t.id === teamId ? { ...t, players: t.players.filter(p => p.id !== playerId) } : t);
-                        saveTeamState(updatedTeams);
-                        setConfirmDialog(null);
-                    }
-                });
-            };
-
-            const handleDeleteTeam = (teamId) => {
-                setConfirmDialog({
-                    title: "Erase Franchise?",
-                    text: "Permanently delete this team from records.",
-                    onConfirm: () => {
-                        const remaining = teams.filter(t => t.id !== teamId);
-                        setTeams(remaining);
-                        if (window.firebaseDb) {
-                            const { doc, deleteDoc } = window.firebaseUtils;
-                            const appId = typeof __app_id !== 'undefined' ? __app_id : 'wknd-league-stats';
-                            deleteDoc(doc(window.firebaseDb, 'artifacts', appId, 'public', 'data', 'teams', teamId));
-                        }
-                        setConfirmDialog(null);
-                    }
-                });
-            };
-
             const computeShootingPercentages = (stats) => {
                 const totalMade = (stats.fg2m || 0) + (stats.fg3m || 0);
                 const totalAttempts = totalMade + (stats.fg2m_miss || 0) + (stats.fg3m_miss || 0);
@@ -935,7 +711,6 @@
                 const currentPct = computeShootingPercentages(stats);
                 const hasActionArmed = activeAction !== null;
 
-                // Warning / Disqualified badge structures
                 const isWarning = stats.pf === 4;
                 const isDisqualified = stats.pf >= 5;
 
@@ -943,64 +718,39 @@
                     <div 
                         key={player.id} 
                         onClick={() => hasActionArmed && handlePlayerClick(player.id, isTeamA)}
-                        className={`bg-slate-950/95 border p-3.5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all select-none ${
+                        className={`bg-slate-950/90 border p-3 rounded-xl flex items-center justify-between gap-2 ${
                             hasActionArmed 
                             ? 'armed-target hover:bg-slate-900 border-emerald-500/50' 
                             : 'border-slate-800 hover:border-slate-700/60'
                         } ${isDisqualified ? 'opacity-40 bg-slate-950/60' : ''}`}
                     >
-                        <div className="flex items-center gap-3 flex-shrink-0">
-                            <span className="font-mono text-xs font-bold text-slate-300 bg-slate-900 px-2.5 py-1 rounded-xl border border-slate-800">
-                                #{player.number}
-                            </span>
+                        <div className="flex items-center gap-2 min-w-0">
+                            <span className="font-mono text-xs font-bold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">#{player.number}</span>
                             <div className="min-w-0">
-                                <div className="flex items-center gap-1.5">
-                                    <span className="font-extrabold text-sm text-white block truncate">{player.name}</span>
-                                    {isDisqualified && (
-                                        <span className="px-1.5 py-0.5 bg-red-955 border border-red-750 text-red-400 text-[9px] font-black rounded uppercase animate-pulse">
-                                            🚨 OUT (5 PF)
-                                        </span>
-                                    )}
-                                    {isWarning && (
-                                        <span className="px-1.5 py-0.5 bg-amber-955 border border-amber-700 text-amber-400 text-[9px] font-black rounded uppercase animate-bounce">
-                                            ⚠️ 4 PF
-                                        </span>
-                                    )}
+                                <span className="font-extrabold text-xs text-white truncate block">{player.name}</span>
+                                <div className="flex gap-1 mt-0.5">
+                                    {isDisqualified && <span className="px-1 py-0.5 bg-red-955 text-red-400 text-[8px] font-black border border-red-900 rounded uppercase">OUT</span>}
+                                    {isWarning && <span className="px-1 py-0.5 bg-amber-955 text-amber-400 text-[8px] font-black border border-amber-800 rounded uppercase">4 PF</span>}
+                                    <button 
+                                        onClick={(e) => { e.stopPropagation(); triggerSubModal(player.id, isTeamA); }}
+                                        className="text-[9px] text-orange-400 hover:text-orange-300 font-bold flex items-center gap-0.5"
+                                    >
+                                        Sub
+                                    </button>
                                 </div>
-                                <button 
-                                    onClick={(e) => {
-                                        e.stopPropagation(); 
-                                        triggerSubModal(player.id, isTeamA);
-                                    }}
-                                    className="text-[10px] text-orange-400 hover:text-orange-300 font-bold flex items-center gap-1 mt-0.5 cursor-pointer"
-                                >
-                                    <Icons.ArrowRightLeft /> Substitute
-                                </button>
                             </div>
                         </div>
-
-                        <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-mono font-bold bg-slate-900/60 px-3 py-2 rounded-xl border border-slate-850/80">
-                            <span className="text-orange-400">PTS: <span className="text-white text-xs">{stats.pts}</span></span>
-                            <span className="text-slate-600">•</span>
-                            <span className="text-emerald-400">FG%: <span className="text-white">{currentPct.fgPct}</span></span>
-                            <span className="text-slate-600">•</span>
-                            <span className="text-cyan-400">3P%: <span className="text-white">{currentPct.fg3Pct}</span></span>
-                            <span className="text-slate-600">•</span>
-                            <span className="text-emerald-400">REB: <span className="text-white">{stats.reb}</span></span>
-                            <span className="text-slate-600">•</span>
-                            <span className="text-blue-400">AST: <span className="text-white">{stats.ast}</span></span>
-                            <span className="text-slate-600">•</span>
-                            <span className="text-amber-500">TO: <span className="text-white">{stats.to}</span></span>
-                            <span className="text-slate-600">•</span>
-                            <span className={`px-1.5 py-0.5 rounded ${stats.pf >= 4 ? 'bg-red-955 text-red-400 border border-red-900' : 'text-slate-400'}`}>
-                                PF: {stats.pf}/5
-                            </span>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                            <div className="flex gap-1.5 text-[10px] font-mono bg-slate-900 px-2 py-1 rounded border border-slate-800 text-slate-400">
+                                <span>P: <strong className="text-white">{stats.pts}</strong></span>
+                                <span>R: <strong className="text-white">{stats.reb}</strong></span>
+                                <span>A: <strong className="text-white">{stats.ast}</strong></span>
+                            </div>
                         </div>
                     </div>
                 );
             };
 
-            /* STREAMING_CHUNK: Processing Layout View Renderers */
             return (
                 <div className="max-w-7xl mx-auto px-4 py-4 md:py-8">
                     
@@ -1021,7 +771,6 @@
 
                     {/* MAIN DECK */}
                     <main>
-                        {/* TAB 1: DUAL CONSOLE WITH TIERED BUTTON HIERARCHY */}
                         {activeTab === 'live' && (
                             <div>
                                 {!isGameLive ? (
@@ -1048,7 +797,6 @@
                                     </div>
                                 ) : (
                                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                                        
                                         {/* COMPACT MOBILE SCOREBAR */}
                                         <div className="col-span-12 bg-slate-900 border border-slate-800 p-2 rounded-xl shadow-xl">
                                             <div className="grid grid-cols-7 items-center bg-slate-950 border border-slate-900 px-3 py-1.5 rounded-lg">
@@ -1066,11 +814,11 @@
 
                                         {/* QUICK ACTION DECK GRID WITH RESPONSIVE DISPLAY & TIERED PRIORITY */}
                                         <div className="col-span-12 bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-xl space-y-4">
-                                            <div className="flex justify-between items-center border-b border-slate-800 pb-2">
-                                                <span className="text-[10px] text-emerald-400 uppercase tracking-wider font-extrabold flex items-center gap-1"><Icons.Zap /> Tap an action first, then select player on court</span>
+                                            <div className="flex justify-between items-center border-b border-slate-800 pb-1.5">
+                                                <span className="text-[10px] text-emerald-400 uppercase tracking-wider font-extrabold flex items-center gap-1"><Icons.Zap /> Tap action first, then select player on court</span>
                                                 <div className="flex gap-2">
-                                                    <button onClick={handleUndo} disabled={loggedHistory.length === 0} className="px-3 py-1 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-black transition-colors cursor-pointer">Undo Last</button>
-                                                    <button onClick={() => setCorrectionMode(!correctionMode)} className={`px-3 py-1 rounded text-xs font-black border transition-colors cursor-pointer ${correctionMode ? 'bg-red-955 text-red-400 border-red-700' : 'bg-slate-950 text-slate-400 border-slate-800'}`}>Correction Mode</button>
+                                                    <button onClick={handleUndo} disabled={loggedHistory.length === 0} className="px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold">Undo</button>
+                                                    <button onClick={() => setCorrectionMode(!correctionMode)} className={`px-2 py-0.5 rounded text-[10px] font-bold border ${correctionMode ? 'bg-red-955 text-red-400 border-red-700' : 'bg-slate-950 text-slate-400 border-slate-800'}`}>Correction</button>
                                                 </div>
                                             </div>
 
@@ -1127,7 +875,7 @@
                                         </div>
 
                                         {/* Mobile Tab Toggles */}
-                                        <div className="col-span-12 md:hidden flex bg-slate-950 p-1.5 rounded-xl border border-slate-855 gap-1">
+                                        <div className="col-span-12 md:hidden flex bg-slate-950 p-1 rounded-xl border border-slate-855 gap-1">
                                             <button onClick={() => setActiveMobileConsoleTab('home')} className={`flex-1 py-1.5 text-center text-xs font-bold rounded-lg ${activeMobileConsoleTab === 'home' ? 'bg-slate-800 text-white' : 'text-slate-400'}`}>🏠 Home lineup</button>
                                             <button onClick={() => setActiveMobileConsoleTab('away')} className={`flex-1 py-1.5 text-center text-xs font-bold rounded-lg ${activeMobileConsoleTab === 'away' ? 'bg-slate-800 text-white' : 'text-slate-400'}`}>🚌 Away lineup</button>
                                         </div>
@@ -1150,51 +898,11 @@
                                                 {gameLog.map((log, idx) => <div key={idx} className="border-b border-slate-850 py-1 text-slate-300"><span className="text-amber-500">[{log.time.split(' ')[0]}]</span> {log.text}</div>)}
                                             </div>
                                             
-                                            {/* Game Controls Save Box */}
                                             <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl md:rounded-2xl space-y-3">
                                                 <div className="space-y-1.5">
-                                                    <button 
-                                                        onClick={() => {
-                                                            setConfirmDialog({
-                                                                title: "End Match Session?",
-                                                                text: "Lock in these figures to upgrade stats across both rosters permanent profiles.",
-                                                                onConfirm: () => {
-                                                                    handleEndGame();
-                                                                    setConfirmDialog(null);
-                                                                }
-                                                            });
-                                                        }}
-                                                        className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-3 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
-                                                    >
-                                                        Save & End Official Game
-                                                    </button>
-                                                    
-                                                    {/* Clear & Restart Button */}
-                                                    <button 
-                                                        type="button"
-                                                        onClick={handleResetMatch}
-                                                        className="w-full bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/40 text-amber-400 font-bold py-2 px-3 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                                                    >
-                                                        Clear & Restart Game
-                                                    </button>
-
-                                                    <button 
-                                                        onClick={() => {
-                                                            setConfirmDialog({
-                                                                title: "Cancel Match?",
-                                                                text: "This deletes all active progress for this session. No logs will be saved to disk.",
-                                                                onConfirm: () => {
-                                                                    setIsGameLive(false);
-                                                                    setActiveAction(null);
-                                                                    setConfirmDialog(null);
-                                                                    showToast("Live session terminated.", "info");
-                                                                }
-                                                            });
-                                                        }}
-                                                        className="w-full bg-slate-950/60 hover:text-red-300 hover:border-red-900 border border-slate-855 text-slate-500 text-xs py-1.5 rounded-xl transition-all cursor-pointer"
-                                                    >
-                                                        Discard Match
-                                                    </button>
+                                                    <button onClick={() => setConfirmDialog({ title: "End Match?", text: "Lock boxscores permanently.", onConfirm: () => { handleEndGame(); setConfirmDialog(null); } })} className="w-full bg-emerald-600 font-bold py-2 rounded-xl text-xs text-white">Save Boxscore</button>
+                                                    <button onClick={handleResetMatch} className="w-full bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/40 text-amber-400 font-bold py-2 px-3 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer">Clear & Restart Game</button>
+                                                    <button onClick={() => setConfirmDialog({ title: "Cancel Match?", text: "This deletes all active progress for this session. No logs will be saved to disk.", onConfirm: () => { setIsGameLive(false); setActiveAction(null); setConfirmDialog(null); } })} className="w-full bg-slate-950/60 hover:text-red-300 hover:border-red-900 border border-slate-855 text-slate-500 text-xs py-1.5 rounded-xl transition-all cursor-pointer">Discard Match</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -1203,7 +911,7 @@
                             </div>
                         )}
 
-                        {/* TAB 2: ROSTER LISTS (ALL COLUMNS INCLUDED) */}
+                        {/* TAB 2: ROSTER LISTS (CLEAN DESIGN - ONLY CSV IMPORTER REMAINS) */}
                         {activeTab === 'teams' && (
                             <div className="space-y-4">
                                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-slate-950 p-4 rounded-xl border border-slate-850">
@@ -1211,18 +919,11 @@
                                         <h3 className="text-base font-bold text-white font-sans">Division Rosters</h3>
                                     </div>
                                     <div className="flex flex-wrap gap-1.5 text-xs font-bold font-sans">
-                                        <button onClick={handleExportRostersOnly} className="bg-slate-900 px-3 py-1.5 rounded border border-slate-800 text-slate-300">Export Templates</button>
-                                        <label className="bg-slate-900 px-3 py-1.5 rounded border border-slate-800 text-slate-300 cursor-pointer">Import Templates<input type="file" accept=".json" onChange={handleImportRostersOnly} className="hidden" /></label>
-                                        
                                         {/* SMART CSV ROSTER IMPORTER DOCK BUTTON */}
                                         <label className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded cursor-pointer transition-colors">
                                             Import CSV Roster (Sheets)
                                             <input type="file" accept=".csv" onChange={handleImportCSV} className="hidden" />
                                         </label>
-
-                                        <button onClick={handleExportData} className="bg-slate-900 px-3 py-1.5 rounded border border-slate-800 text-slate-300">Export DB</button>
-                                        <label className="bg-slate-900 px-3 py-1.5 rounded border border-slate-800 text-slate-300 cursor-pointer">Restore DB<input type="file" accept=".json" onChange={handleImportData} className="hidden" /></label>
-                                        <label className="bg-slate-900 px-3 py-1.5 rounded border border-slate-850 text-emerald-400 cursor-pointer">Merge Matches<input type="file" accept=".json" onChange={handleMergeData} className="hidden" /></label>
                                     </div>
                                 </div>
 
@@ -1305,8 +1006,7 @@
 
                                         return (
                                             <div key={game.id} className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl p-4 space-y-4">
-                                                {/* Score Header row */}
-                                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-950 p-3.5 rounded-xl border border-slate-850 gap-2">
+                                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-950 p-3.5 rounded-xl border border-slate-855 gap-2">
                                                     <div>
                                                         <span className="font-extrabold text-sm text-white block">
                                                             {game.teamAName} <span className="text-orange-400 text-base mx-1">{game.teamAScore}</span> 
@@ -1361,7 +1061,7 @@
                                                                         const pstats = game.playerStats[player.id];
                                                                         const pPct = computeShootingPercentages(pstats);
                                                                         return (
-                                                                            <tr key={player.id} className="hover:bg-slate-850/20">
+                                                                            <tr key={player.id} className="hover:bg-slate-855/20">
                                                                                 <td className="py-2 px-3 text-white font-bold font-sans">
                                                                                     <span className="text-slate-500 font-mono mr-1.5 text-[10px]">#{player.number}</span>
                                                                                     {player.name}
@@ -1412,7 +1112,7 @@
                                                                         const pstats = game.playerStats[player.id];
                                                                         const pPct = computeShootingPercentages(pstats);
                                                                         return (
-                                                                            <tr key={player.id} className="hover:bg-slate-850/20">
+                                                                            <tr key={player.id} className="hover:bg-slate-855/20">
                                                                                 <td className="py-2 px-3 text-white font-bold font-sans">
                                                                                     <span className="text-slate-500 font-mono mr-1.5 text-[10px]">#{player.number}</span>
                                                                                     {player.name}
@@ -1441,16 +1141,15 @@
                             </div>
                         )}
 
-                        {/* TAB 4: COMPREHENSIVE ALL-PLAYER LEADERBOARD GRID */}
+                        {/* TAB 4: COMPREHENSIVE ALL-PLAYER LEADERBOARDS */}
                         {activeTab === 'leaders' && (
                             <div className="space-y-6">
                                 <div>
-                                    <h3 className="text-xl font-bold text-white">League Statistics Leaderboard</h3>
+                                    <h3 className="text-xl font-bold text-white font-sans">League Statistics Leaderboard</h3>
                                     <p className="text-xs text-slate-400">Displaying performance standings across all active league roster fields.</p>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                                    
                                     {/* Panel 1: Scoring (PPG) */}
                                     <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col max-h-[350px]">
                                         <h4 className="font-extrabold text-[11px] uppercase text-orange-400 border-b border-slate-800 pb-2 mb-2 flex justify-between"><span>Scoring (PPG)</span> <span>PTS</span></h4>
@@ -1585,83 +1284,7 @@
                                                                     </span>
                                                                 </div>
                                                                 {isExpanded && (
-                                                                    <div className="p-3 bg-slate-950 border-t border-slate-850/60 grid grid-cols-3 sm:grid-cols-5 gap-2.5 text-xs font-semibold">
-                                                                        <div>
-                                                                            <label className="block text-[10px] text-slate-400 mb-1">PTS</label>
-                                                                            <input type="number" min="0" value={pstats.pts || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, pts: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
-                                                                        </div>
-                                                                        <div>
-                                                                            <label className="block text-[10px] text-slate-400 mb-1">REB</label>
-                                                                            <input type="number" min="0" value={pstats.reb || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, reb: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
-                                                                        </div>
-                                                                        <div>
-                                                                            <label className="block text-[10px] text-slate-400 mb-1">AST</label>
-                                                                            <input type="number" min="0" value={pstats.ast || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, ast: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
-                                                                        </div>
-                                                                        <div>
-                                                                            <label className="block text-[10px] text-slate-400 mb-1">STL</label>
-                                                                            <input type="number" min="0" value={pstats.stl || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, stl: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
-                                                                        </div>
-                                                                        <div>
-                                                                            <label className="block text-[10px] text-slate-400 mb-1">BLK</label>
-                                                                            <input type="number" min="0" value={pstats.blk || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, blk: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
-                                                                        </div>
-                                                                        <div>
-                                                                            <label className="block text-[10px] text-slate-400 mb-1">TO</label>
-                                                                            <input type="number" min="0" value={pstats.to || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, to: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
-                                                                        </div>
-                                                                        <div>
-                                                                            <label className="block text-[10px] text-slate-400 mb-1">PF</label>
-                                                                            <input type="number" min="0" max="5" value={pstats.pf || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, pf: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
-                                                                        </div>
-                                                                        <div>
-                                                                            <label className="block text-[10px] text-slate-400 mb-1">2PM</label>
-                                                                            <input type="number" min="0" value={pstats.fg2m || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, fg2m: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
-                                                                        </div>
-                                                                        <div>
-                                                                            <label className="block text-[10px] text-slate-400 mb-1">3PM</label>
-                                                                            <input type="number" min="0" value={pstats.fg3m || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, fg3m: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
-                                                                        </div>
-                                                                        <div>
-                                                                            <label className="block text-[10px] text-slate-400 mb-1">2P Miss</label>
-                                                                            <input type="number" min="0" value={pstats.fg2m_miss || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, fg2m_miss: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
-                                                                        </div>
-                                                                        <div>
-                                                                            <label className="block text-[10px] text-slate-400 mb-1">3P Miss</label>
-                                                                            <input type="number" min="0" value={pstats.fg3m_miss || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, fg3m_miss: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                            </div>
-                        );
-                    })}
-                                        </div>
-
-                                        {/* Away Team Section */}
-                                        <div>
-                                            <h4 className="text-xs font-black text-red-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                                                <span className="w-2 h-2 rounded-full bg-red-400" /> {editingGame.teamBName} (Away)
-                                            </h4>
-                                            <div className="space-y-2">
-                                                {(teams.find(t => t.id === editingGame.teamBId)?.players || [])
-                                                    .map(player => {
-                                                        const isExpanded = expandedEditPlayerId === player.id;
-                                                        const pstats = editStatsTemp[player.id] || { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 };
-                                                        return (
-                                                            <div key={player.id} className="bg-slate-950/60 border border-slate-850 rounded-xl overflow-hidden">
-                                                                <div 
-                                                                    onClick={() => setExpandedEditPlayerId(isExpanded ? null : player.id)}
-                                                                    className="p-3 flex items-center justify-between cursor-pointer hover:bg-slate-900/40 select-none"
-                                                                >
-                                                                    <span className="text-xs font-extrabold text-white">
-                                                                        <span className="font-mono text-slate-500 mr-1.5">#{player.number}</span> {player.name}
-                                                                    </span>
-                                                                    <span className="text-[10px] text-slate-400 font-mono bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
-                                                                        PTS: {pstats.pts || 0} • REB: {pstats.reb || 0} • AST: {pstats.ast || 0}
-                                                                    </span>
-                                                                </div>
-                                                                {isExpanded && (
-                                                                    <div className="p-3 bg-slate-950 border-t border-slate-850/60 grid grid-cols-3 sm:grid-cols-5 gap-2.5 text-xs font-semibold">
+                                                                    <div className="p-3 bg-slate-950 border-t border-slate-855 grid grid-cols-3 sm:grid-cols-5 gap-2.5 text-xs font-semibold">
                                                                         <div>
                                                                             <label className="block text-[10px] text-slate-400 mb-1">PTS</label>
                                                                             <input type="number" min="0" value={pstats.pts || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, pts: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
@@ -1711,6 +1334,83 @@
                                                             </div>
                                                         );
                                                     })}
+                                            </div>
+                                        </div>
+
+                                        {/* Away Team Section */}
+                                        <div>
+                                            <h4 className="text-xs font-black text-red-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                                                <span className="w-2 h-2 rounded-full bg-red-400" /> {editingGame.teamBName} (Away)
+                                            </h4>
+                                            <div className="space-y-2">
+                                                {(teams.find(t => t.id === editingGame.teamBId)?.players || [])
+                                                    .map(player => {
+                                                        const isExpanded = expandedEditPlayerId === player.id;
+                                                        const pstats = editStatsTemp[player.id] || { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 };
+                                                        return (
+                                                            <div key={player.id} className="bg-slate-950/60 border border-slate-850 rounded-xl overflow-hidden">
+                                                                <div 
+                                                                    onClick={() => setExpandedEditPlayerId(isExpanded ? null : player.id)}
+                                                                    className="p-3 flex items-center justify-between cursor-pointer hover:bg-slate-900/40 select-none"
+                                                                >
+                                                                    <span className="text-xs font-extrabold text-white">
+                                                                        <span className="font-mono text-slate-500 mr-1.5">#{player.number}</span> {player.name}
+                                                                    </span>
+                                                                    <span className="text-[10px] text-slate-400 font-mono bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                                                                        PTS: {pstats.pts || 0} • REB: {pstats.reb || 0} • AST: {pstats.ast || 0}
+                                                                    </span>
+                                                                </div>
+                                                                {isExpanded && (
+                                                                    <div className="p-3 bg-slate-950 border-t border-slate-850 grid grid-cols-3 sm:grid-cols-5 gap-2.5 text-xs font-semibold">
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">PTS</label>
+                                                                            <input type="number" min="0" value={pstats.pts || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, pts: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">REB</label>
+                                                                            <input type="number" min="0" value={pstats.reb || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, reb: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">AST</label>
+                                                                            <input type="number" min="0" value={pstats.ast || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, ast: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">STL</label>
+                                                                            <input type="number" min="0" value={pstats.stl || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, stl: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">BLK</label>
+                                                                            <input type="number" min="0" value={pstats.blk || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, blk: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">TO</label>
+                                                                            <input type="number" min="0" value={pstats.to || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, to: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">PF</label>
+                                                                            <input type="number" min="0" max="5" value={pstats.pf || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, pf: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">2PM</label>
+                                                                            <input type="number" min="0" value={pstats.fg2m || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, fg2m: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">3PM</label>
+                                                                            <input type="number" min="0" value={pstats.fg3m || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, fg3m: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">2P Miss</label>
+                                                                            <input type="number" min="0" value={pstats.fg2m_miss || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, fg2m_miss: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">3P Miss</label>
+                                                                            <input type="number" min="0" value={pstats.fg3m_miss || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, fg3m_miss: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                            </div>
+                        );
+                    })}
                                             </div>
                                         </div>
                                     </div>
@@ -1831,7 +1531,7 @@
                     {foulAlert && (
                         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
                             <div className={`border p-6 rounded-2xl w-full max-w-sm shadow-2xl relative text-center my-auto ${
-                                foulAlert.type === 'disqualified' ? 'bg-red-950/90 border-red-500' : 'bg-amber-950/90 border-amber-500'
+                                foulAlert.type === 'disqualified' ? 'bg-red-950/90 border-red-500' : 'bg-amber-955 border-amber-500'
                             }`}>
                                 <div className="text-4xl mb-3">
                                     {foulAlert.type === 'disqualified' ? '🚨' : '⚠️'}
@@ -1848,7 +1548,7 @@
                                 <button 
                                     onClick={() => setFoulAlert(null)}
                                     className={`w-full py-2.5 rounded-xl text-xs font-bold text-white transition-colors cursor-pointer ${
-                                        foulAlert.type === 'disqualified' ? 'bg-red-600 hover:bg-red-500' : 'bg-amber-600 hover:bg-amber-500'
+                                        foulAlert.type === 'disqualified' ? 'bg-red-650 hover:bg-red-500' : 'bg-amber-650 hover:bg-amber-550'
                                     }`}
                                 >
                                     Acknowledge Alert
