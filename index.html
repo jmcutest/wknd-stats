@@ -39,15 +39,6 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #475569;
         }
-        /* Animated pulsing ring for armed action state */
-        @keyframes targetPulse {
-            0%, 100% { border-color: rgba(16, 185, 129, 0.4); box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.2); }
-            50% { border-color: rgba(16, 185, 129, 0.9); box-shadow: 0 0 10px 3px rgba(16, 185, 129, 0.4); }
-        }
-        .armed-target {
-            animation: targetPulse 1.8s infinite ease-in-out;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body class="min-h-screen">
@@ -123,19 +114,19 @@
         ];
 
         const STAT_ACTIONS = [
-            { id: 'pts_1', label: '+1 FT', category: 'score', stat: 'pts', val: 1, colorClass: 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500' },
-            { id: 'pts_2', label: '+2 PTS', category: 'score', stat: 'pts', val: 2, colorClass: 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500', trackingStat: 'fg2m' },
-            { id: 'pts_3', label: '+3 PTS', category: 'score', stat: 'pts', val: 3, colorClass: 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500', trackingStat: 'fg3m' },
+            { id: 'pts_1', label: '+1 FT', category: 'score', stat: 'pts', val: 1, colorClass: 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500 shadow-sm' },
+            { id: 'pts_2', label: '2pt Made', category: 'score', stat: 'pts', val: 2, colorClass: 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500 shadow-md', trackingStat: 'fg2m' },
+            { id: 'pts_3', label: '3pt Made', category: 'score', stat: 'pts', val: 3, colorClass: 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500 shadow-md', trackingStat: 'fg3m' },
             
-            { id: 'ast', label: '+1 AST', category: 'play', stat: 'ast', val: 1, colorClass: 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-600' },
-            { id: 'reb', label: '+1 REB', category: 'play', stat: 'reb', val: 1, colorClass: 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-600' },
-            { id: 'stl', label: '+1 STL', category: 'play', stat: 'stl', val: 1, colorClass: 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-600' },
-            { id: 'blk', label: '+1 BLK', category: 'play', stat: 'blk', val: 1, colorClass: 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-600' },
+            { id: 'ast', label: '+1 AST', category: 'play', stat: 'ast', val: 1, colorClass: 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-600 shadow-sm' },
+            { id: 'reb', label: '+1 REB', category: 'play', stat: 'reb', val: 1, colorClass: 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-600 shadow-sm' },
+            { id: 'stl', label: '+1 STL', category: 'play', stat: 'stl', val: 1, colorClass: 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-600 shadow-sm' },
+            { id: 'blk', label: '+1 BLK', category: 'play', stat: 'blk', val: 1, colorClass: 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-600 shadow-sm' },
             
-            { id: 'fg2m_miss', label: '2PT Miss', category: 'miss', stat: 'fg2m_miss', val: 1, colorClass: 'bg-red-600 hover:bg-red-500 text-white border-red-500' },
-            { id: 'fg3m_miss', label: '3PT Miss', category: 'miss', stat: 'fg3m_miss', val: 1, colorClass: 'bg-red-600 hover:bg-red-500 text-white border-red-500' },
-            { id: 'to', label: '+1 TO', category: 'deficit', stat: 'to', val: 1, colorClass: 'bg-red-700 hover:bg-red-600 text-white border-red-650' },
-            { id: 'pf', label: '+1 FOUL', category: 'deficit', stat: 'pf', val: 1, colorClass: 'bg-red-800 hover:bg-red-700 text-white border-red-700' }
+            { id: 'fg2m_miss', label: '2pt Miss', category: 'miss', stat: 'fg2m_miss', val: 1, colorClass: 'bg-red-600 hover:bg-red-500 text-white border-red-500 shadow-md' },
+            { id: 'fg3m_miss', label: '3pt Miss', category: 'miss', stat: 'fg3m_miss', val: 1, colorClass: 'bg-red-600 hover:bg-red-500 text-white border-red-500 shadow-md' },
+            { id: 'to', label: '+1 TO', category: 'deficit', stat: 'to', val: 1, colorClass: 'bg-red-700 hover:bg-red-600 text-white border-red-600 shadow-sm' },
+            { id: 'pf', label: '+1 FOUL', category: 'deficit', stat: 'pf', val: 1, colorClass: 'bg-red-800 hover:bg-red-700 text-white border-red-700 shadow-sm' }
         ];
 
         function App() {
@@ -162,7 +153,6 @@
             const [activeAction, setActiveAction] = useState(null); 
             const [correctionMode, setCorrectionMode] = useState(false); 
             const [showLoggingModal, setShowLoggingModal] = useState(false);
-            const [foulAlert, setFoulAlert] = useState(null);
 
             const [activeMobileConsoleTab, setActiveMobileConsoleTab] = useState('home');
 
@@ -178,10 +168,18 @@
             const [showSubstitutionModal, setShowSubstitutionModal] = useState(false);
             const [subTargetPlayer, setSubTargetPlayer] = useState(null); 
 
+            // Modal alert system for 4th and 5th personal fouls
+            const [foulAlert, setFoulAlert] = useState(null); // { playerName, number, fouls, type: 'warning' | 'disqualified' }
+
             const [confirmDialog, setConfirmDialog] = useState(null);
 
+            // Filter actions for tiered hierarchy optimization
+            const primaryActions = STAT_ACTIONS.filter(act => ['pts_2', 'pts_3', 'fg2m_miss', 'fg3m_miss'].includes(act.id));
+            const secondaryActions = STAT_ACTIONS.filter(act => ['reb', 'ast'].includes(act.id));
+            const tertiaryActions = STAT_ACTIONS.filter(act => ['pts_1', 'stl', 'blk', 'to', 'pf'].includes(act.id));
+
             useEffect(() => {
-                const isAnyModalOpen = showNewTeamModal || showNewPlayerModal || showSubstitutionModal || showLoggingModal || !!confirmDialog;
+                const isAnyModalOpen = showNewTeamModal || showNewPlayerModal || showSubstitutionModal || showLoggingModal || !!confirmDialog || !!foulAlert;
                 if (isAnyModalOpen) {
                     document.body.style.overflow = 'hidden';
                     document.body.style.position = 'fixed';
@@ -196,7 +194,7 @@
                     document.body.style.position = '';
                     document.body.style.width = '';
                 };
-            }, [showNewTeamModal, showNewPlayerModal, showSubstitutionModal, showLoggingModal, confirmDialog]);
+            }, [showNewTeamModal, showNewPlayerModal, showSubstitutionModal, showLoggingModal, confirmDialog, foulAlert]);
 
             const handleExportData = () => {
                 try {
@@ -526,6 +524,17 @@
                     }
                 }
 
+                // Foul warnings & DQ logic
+                if (statField === 'pf' && !correctionMode) {
+                    const currentFouls = liveStats[playerId]?.pf || 0;
+                    const nextFouls = currentFouls + changeAmount;
+                    if (nextFouls === 4) {
+                        setFoulAlert({ playerName: playerObj.name, number: playerObj.number, fouls: 4, type: 'warning' });
+                    } else if (nextFouls >= 5) {
+                        setFoulAlert({ playerName: playerObj.name, number: playerObj.number, fouls: 5, type: 'disqualified' });
+                    }
+                }
+
                 const logWithTag = `[${isTeamA ? 'HOME' : 'AWAY'}] ${logText}`;
 
                 setLoggedHistory(prev => [{ playerId, statField, changeAmount, attachedTrackingStat, previousTeamAScore: teamAScore, previousTeamBScore: teamBScore, logText: logWithTag }, ...prev]);
@@ -538,14 +547,6 @@
                     if (attachedTrackingStat) {
                         const currentTrackVal = prev[playerId]?.[attachedTrackingStat] || 0;
                         playerUpdate[attachedTrackingStat] = Math.max(0, currentTrackVal + (1 * multiplier));
-                    }
-
-                    if (statField === 'pf' && multiplier > 0) {
-                        if (newVal === 4) {
-                            setFoulAlert({ playerName: playerObj?.name, playerNumber: playerObj?.number, type: 'warning', count: 4 });
-                        } else if (newVal >= 5) {
-                            setFoulAlert({ playerName: playerObj?.name, playerNumber: playerObj?.number, type: 'fouled_out', count: 5 });
-                        }
                     }
 
                     const updated = { ...prev, [playerId]: playerUpdate };
@@ -586,13 +587,6 @@
                 setTeamAScore(lastAction.previousTeamAScore);
                 setTeamBScore(lastAction.previousTeamBScore);
                 setGameLog(prev => prev.filter(log => log.text !== lastAction.logText));
-            };
-
-            const triggerSubModal = (playerId, isTeamA) => {
-                const playerObj = teams.flatMap(t => t.players).find(p => p.id === playerId);
-                if (!playerObj) return;
-                setSubTargetPlayer({ id: playerId, name: playerObj.name, number: playerObj.number, team: isTeamA ? 'A' : 'B' });
-                setShowSubstitutionModal(true);
             };
 
             const executeSubstitution = (outId, inId, isTeamA) => {
@@ -730,41 +724,48 @@
                 const player = teamObj?.players.find(p => p.id === playerId);
                 if (!player) return null;
                 const stats = liveStats[playerId] || { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 };
-                const currentPct = computeShootingPercentages(liveStats[playerId] || {});
-
+                const currentPct = computeShootingPercentages(stats);
                 const hasActionArmed = activeAction !== null;
-                const isFoulTrouble = stats.pf === 4;
-                const isFouledOut = stats.pf >= 5;
+
+                // Warning / Disqualified badge structures
+                const isWarning = stats.pf === 4;
+                const isDisqualified = stats.pf >= 5;
 
                 return (
                     <div 
                         key={player.id} 
                         onClick={() => hasActionArmed && handlePlayerClick(player.id, isTeamA)}
-                        className={`bg-slate-950/90 border p-3.5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all select-none ${
-                            isFouledOut ? 'opacity-50 border-red-900 bg-red-950/10' : 'border-slate-800 hover:border-slate-700/60'
-                        } ${
-                            hasActionArmed && !isFouledOut
+                        className={`bg-slate-950/95 border p-3.5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all select-none ${
+                            hasActionArmed 
                             ? 'armed-target hover:bg-slate-900 border-emerald-500/50' 
-                            : ''
-                        }`}
+                            : 'border-slate-800 hover:border-slate-700/60'
+                        } ${isDisqualified ? 'opacity-40 bg-slate-950/60' : ''}`}
                     >
                         <div className="flex items-center gap-3 flex-shrink-0">
-                            <span className="font-mono text-xs font-bold text-slate-300 bg-slate-900 px-2.5 py-1 rounded-xl border border-slate-800">#{player.number}</span>
+                            <span className="font-mono text-xs font-bold text-slate-300 bg-slate-900 px-2.5 py-1 rounded-xl border border-slate-800">
+                                #{player.number}
+                            </span>
                             <div className="min-w-0">
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1.5">
                                     <span className="font-extrabold text-sm text-white block truncate">{player.name}</span>
-                                    {isFoulTrouble && (
-                                        <span className="bg-amber-500/20 text-amber-400 text-[9px] px-1.5 py-0.5 rounded border border-amber-500/30 font-bold animate-pulse flex-shrink-0">
-                                            ⚠️ 4 PF
-                                        </span>
-                                    )}
-                                    {isFouledOut && (
-                                        <span className="bg-red-500/20 text-red-400 text-[9px] px-1.5 py-0.5 rounded border border-red-500/30 font-bold flex-shrink-0 animate-bounce">
+                                    {isDisqualified && (
+                                        <span className="px-1.5 py-0.5 bg-red-950 border border-red-700 text-red-400 text-[9px] font-black rounded uppercase animate-pulse">
                                             🚨 OUT (5 PF)
                                         </span>
                                     )}
+                                    {isWarning && (
+                                        <span className="px-1.5 py-0.5 bg-amber-950 border border-amber-700 text-amber-400 text-[9px] font-black rounded uppercase animate-bounce">
+                                            ⚠️ 4 PF
+                                        </span>
+                                    )}
                                 </div>
-                                <button onClick={(e) => { e.stopPropagation(); triggerSubModal(player.id, isTeamA); }} className="text-[10px] text-orange-400 hover:text-orange-300 font-bold flex items-center gap-1 mt-0.5 cursor-pointer">
+                                <button 
+                                    onClick={(e) => {
+                                        e.stopPropagation(); 
+                                        triggerSubModal(player.id, isTeamA);
+                                    }}
+                                    className="text-[10px] text-orange-400 hover:text-orange-300 font-bold flex items-center gap-1 mt-0.5 cursor-pointer"
+                                >
                                     <Icons.ArrowRightLeft /> Substitute
                                 </button>
                             </div>
@@ -783,7 +784,7 @@
                             <span className="text-slate-600">•</span>
                             <span className="text-amber-500">TO: <span className="text-white">{stats.to}</span></span>
                             <span className="text-slate-600">•</span>
-                            <span className={`px-1.5 py-0.5 rounded ${stats.pf >= 4 ? 'bg-red-950 text-red-400 border border-red-900' : 'text-slate-400'}`}>
+                            <span className={`px-1.5 py-0.5 rounded ${stats.pf >= 4 ? 'bg-red-955 text-red-400 border border-red-900' : 'text-slate-400'}`}>
                                 PF: {stats.pf}/5
                             </span>
                         </div>
@@ -802,15 +803,16 @@
 
                         {/* NAV CONTROL TABS */}
                         <nav className="flex bg-slate-900 p-1 rounded-xl border border-slate-800 gap-0.5">
-                            <button onClick={() => setActiveTab('live')} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${activeTab === 'live' ? 'bg-orange-500 text-white shadow-lg' : 'text-slate-400'}`}><Icons.Activity /> Console</button>
-                            <button onClick={() => setActiveTab('teams')} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${activeTab === 'teams' ? 'bg-orange-500 text-white shadow-lg' : 'text-slate-400'}`}><Icons.Users /> Teams</button>
-                            <button onClick={() => setActiveTab('history')} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${activeTab === 'history' ? 'bg-orange-500 text-white shadow-lg' : 'text-slate-400'}`}><Icons.History /> History</button>
-                            <button onClick={() => setActiveTab('leaders')} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${activeTab === 'leaders' ? 'bg-orange-500 text-white shadow-lg' : 'text-slate-400'}`}><Icons.Trophy /> Leaders</button>
+                            <button onClick={() => setActiveTab('live')} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'live' ? 'bg-orange-500 text-white shadow-lg' : 'text-slate-400'}`}><Icons.Activity /> Console</button>
+                            <button onClick={() => setActiveTab('teams')} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'teams' ? 'bg-orange-500 text-white shadow-lg' : 'text-slate-400'}`}><Icons.Users /> Teams</button>
+                            <button onClick={() => setActiveTab('history')} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'history' ? 'bg-orange-500 text-white shadow-lg' : 'text-slate-400'}`}><Icons.History /> History</button>
+                            <button onClick={() => setActiveTab('leaders')} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'leaders' ? 'bg-orange-500 text-white shadow-lg' : 'text-slate-400'}`}><Icons.Trophy /> Leaders</button>
                         </nav>
                     </header>
 
                     {/* MAIN DECK */}
                     <main>
+                        {/* TAB 1: DUAL CONSOLE WITH TIERED BUTTON HIERARCHY */}
                         {activeTab === 'live' && (
                             <div>
                                 {!isGameLive ? (
@@ -837,6 +839,7 @@
                                     </div>
                                 ) : (
                                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                                        
                                         {/* COMPACT MOBILE SCOREBAR */}
                                         <div className="col-span-12 bg-slate-900 border border-slate-800 p-2 rounded-xl shadow-xl">
                                             <div className="grid grid-cols-7 items-center bg-slate-950 border border-slate-900 px-3 py-1.5 rounded-lg">
@@ -852,26 +855,70 @@
                                             </div>
                                         </div>
 
-                                        {/* QUICK ACTION DECK GRID WITH RESPONSIVE DISPLAY */}
-                                        <div className="col-span-12 bg-slate-900 border border-slate-800 p-3 rounded-xl shadow-xl space-y-2">
-                                            <div className="flex justify-between items-center border-b border-slate-800 pb-1.5">
-                                                <span className="text-[10px] text-emerald-400 uppercase tracking-wider font-extrabold flex items-center gap-1"><Icons.Zap /> Tap an action to apply directly to courtside rosters</span>
+                                        {/* QUICK ACTION DECK GRID WITH RESPONSIVE DISPLAY & TIERED PRIORITY */}
+                                        <div className="col-span-12 bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-xl space-y-4">
+                                            <div className="flex justify-between items-center border-b border-slate-800 pb-2">
+                                                <span className="text-[10px] text-emerald-400 uppercase tracking-wider font-extrabold flex items-center gap-1"><Icons.Zap /> Tap an action first, then select player on court</span>
                                                 <div className="flex gap-2">
-                                                    <button onClick={handleUndo} disabled={loggedHistory.length === 0} className="px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold">Undo</button>
-                                                    <button onClick={() => setCorrectionMode(!correctionMode)} className={`px-2 py-0.5 rounded text-[10px] font-bold border ${correctionMode ? 'bg-red-950 text-red-400 border-red-700' : 'bg-slate-950 text-slate-400 border-slate-800'}`}>Correction</button>
+                                                    <button onClick={handleUndo} disabled={loggedHistory.length === 0} className="px-3 py-1 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-black transition-colors cursor-pointer">Undo Last</button>
+                                                    <button onClick={() => setCorrectionMode(!correctionMode)} className={`px-3 py-1 rounded text-xs font-black border transition-colors cursor-pointer ${correctionMode ? 'bg-red-955 text-red-400 border-red-700' : 'bg-slate-950 text-slate-400 border-slate-800'}`}>Correction Mode</button>
                                                 </div>
                                             </div>
-                                            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
-                                                {STAT_ACTIONS.map(act => (
-                                                    <button key={act.id} onClick={() => { setActiveAction(act); setShowLoggingModal(true); }} className={`p-2 rounded-lg text-center text-[10px] font-black border transition-all active:scale-95 cursor-pointer ${act.colorClass} border-transparent`}>
-                                                        {act.label}
-                                                    </button>
-                                                ))}
+
+                                            {/* TIER 1: GIANT PRIMARY KEYS (Shooting metrics) */}
+                                            <div>
+                                                <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest block mb-2">🏀 Tier 1: Primary Shooting Keys (Most Common)</span>
+                                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                                    {primaryActions.map(act => (
+                                                        <button 
+                                                            key={act.id} 
+                                                            onClick={() => { setActiveAction(act); setShowLoggingModal(true); }} 
+                                                            className={`py-5 md:py-6 px-4 rounded-2xl text-center text-sm font-black tracking-wide border transition-all active:scale-95 cursor-pointer shadow-lg uppercase ${act.colorClass} border-transparent`}
+                                                        >
+                                                            {act.label}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* TIER 2 & TIER 3 COMBINED CONTAINER */}
+                                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                                                {/* TIER 2: LARGE SECONDARY KEYS (Rebounds & Assists) */}
+                                                <div className="lg:col-span-5">
+                                                    <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest block mb-2">🛡️ Tier 2: Transition Keys (Very Common)</span>
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        {secondaryActions.map(act => (
+                                                            <button 
+                                                                key={act.id} 
+                                                                onClick={() => { setActiveAction(act); setShowLoggingModal(true); }} 
+                                                                className={`py-4 px-4 rounded-xl text-center text-xs font-black border transition-all active:scale-95 cursor-pointer shadow-md uppercase ${act.colorClass} border-transparent`}
+                                                            >
+                                                                {act.label}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+
+                                                {/* TIER 3: COMPACT TERTIARY KEYS (Others) */}
+                                                <div className="lg:col-span-7">
+                                                    <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest block mb-2">⚙️ Tier 3: Auxiliary Game Events</span>
+                                                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                                                        {tertiaryActions.map(act => (
+                                                            <button 
+                                                                key={act.id} 
+                                                                onClick={() => { setActiveAction(act); setShowLoggingModal(true); }} 
+                                                                className={`py-2.5 px-2 rounded-lg text-center text-[10px] font-bold border transition-all active:scale-95 cursor-pointer shadow-sm ${act.colorClass} border-transparent`}
+                                                            >
+                                                                {act.label}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
 
                                         {/* Mobile Tab Toggles */}
-                                        <div className="col-span-12 md:hidden flex bg-slate-950 p-1 rounded-xl border border-slate-850 gap-1">
+                                        <div className="col-span-12 md:hidden flex bg-slate-950 p-1.5 rounded-xl border border-slate-850 gap-1">
                                             <button onClick={() => setActiveMobileConsoleTab('home')} className={`flex-1 py-1.5 text-center text-xs font-bold rounded-lg ${activeMobileConsoleTab === 'home' ? 'bg-slate-800 text-white' : 'text-slate-400'}`}>🏠 Home lineup</button>
                                             <button onClick={() => setActiveMobileConsoleTab('away')} className={`flex-1 py-1.5 text-center text-xs font-bold rounded-lg ${activeMobileConsoleTab === 'away' ? 'bg-slate-800 text-white' : 'text-slate-400'}`}>🚌 Away lineup</button>
                                         </div>
@@ -900,7 +947,7 @@
                             </div>
                         )}
 
-                        {/* TAB 2: ROSTER LISTS */}
+                        {/* TAB 2: ROSTER LISTS (ALL COLUMNS INCLUDED) */}
                         {activeTab === 'teams' && (
                             <div className="space-y-4">
                                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-slate-950 p-4 rounded-xl border border-slate-850">
@@ -947,22 +994,22 @@
                                                             <th className="py-2 px-4 text-center">Action</th>
                                                         </tr>
                                                     </thead>
-                                                    <tbody className="divide-y divide-slate-850/40 text-slate-300 font-medium">
+                                                    <tbody className="divide-y divide-slate-850/40 text-slate-300 font-medium font-mono">
                                                         {team.players.map(p => {
                                                             const gp = p.gamesPlayed || 0;
                                                             const avgs = getAverages(p);
                                                             return (
-                                                                <tr key={p.id} className="hover:bg-slate-850/10">
-                                                                    <td className="py-2.5 px-4 font-mono font-bold text-slate-400">#{p.number}</td>
-                                                                    <td className="py-2.5 px-4 font-bold text-white">{p.name}</td>
+                                                                <tr key={p.id} className="hover:bg-slate-855/10">
+                                                                    <td className="py-2.5 px-4 font-bold text-slate-400">#{p.number}</td>
+                                                                    <td className="py-2.5 px-4 font-bold text-white font-sans">{p.name}</td>
                                                                     <td className="py-2.5 px-2 text-center">{gp}</td>
                                                                     <td className="py-2.5 px-2 text-center font-bold text-orange-400">{avgs.pts}</td>
                                                                     <td className="py-2.5 px-2 text-center font-bold text-emerald-400">{avgs.fgPct}</td>
                                                                     <td className="py-2.5 px-2 text-center font-bold text-cyan-400">{avgs.fg3Pct}</td>
                                                                     <td className="py-2.5 px-2 text-center text-emerald-300">{avgs.reb}</td>
                                                                     <td className="py-2.5 px-2 text-center text-blue-300">{avgs.ast}</td>
-                                                                    <td className="py-2.5 px-2 text-center text-teal-400">{gp === 0 ? "0.0" : (p.totalStats.stl / gp).toFixed(1)}</td>
-                                                                    <td className="py-2.5 px-2 text-center text-violet-400">{gp === 0 ? "0.0" : (p.totalStats.blk / gp).toFixed(1)}</td>
+                                                                    <td className="py-2.5 px-2 text-center text-teal-400">{avgs.spg}</td>
+                                                                    <td className="py-2.5 px-2 text-center text-violet-400">{avgs.bpg}</td>
                                                                     <td className="py-2.5 px-2 text-center text-amber-500">{avgs.to}</td>
                                                                     <td className="py-2.5 px-2 text-center text-red-400">{avgs.pf}</td>
                                                                     <td className="py-2.5 px-4 text-center"><button onClick={() => handleDeletePlayer(team.id, p.id)} className="text-slate-500 hover:text-red-400"><Icons.Trash /></button></td>
@@ -978,7 +1025,7 @@
                             </div>
                         )}
 
-                        {/* TAB 3: MATCH HISTORY - FULL BOXSCORES SEPARATED BY TEAMS */}
+                        {/* TAB 3: MATCH HISTORY - SEPARATED BY TEAM WITH COMPREHENSIVE STATS */}
                         {activeTab === 'history' && (
                             <div className="space-y-6">
                                 <div>
@@ -992,11 +1039,9 @@
                                     games.map(game => {
                                         const teamAObj = teams.find(t => t.id === game.teamAId);
                                         const teamBObj = teams.find(t => t.id === game.teamBId);
-                                        const teamAColor = teamAObj?.color || '#10b981';
-                                        const teamBColor = teamBObj?.color || '#ef4444';
 
                                         return (
-                                            <div key={game.id} className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl p-5 space-y-5">
+                                            <div key={game.id} className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl p-4 space-y-4">
                                                 {/* Score Header row */}
                                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-950 p-3.5 rounded-xl border border-slate-850 gap-2">
                                                     <div>
@@ -1010,20 +1055,20 @@
                                                     <span className="font-mono text-xs font-bold text-slate-400 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg self-start sm:self-auto">{game.date}</span>
                                                 </div>
                                                 
-                                                {/* TEAM A BOXSCORE TABLE */}
+                                                {/* TEAM A STATLINE TABLE */}
                                                 <div className="space-y-2">
-                                                    <h4 className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5" style={{ color: teamAColor }}>
-                                                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: teamAColor }} />
-                                                        {game.teamAName}
-                                                    </h4>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: teamAObj?.color || '#10b981' }} />
+                                                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200">{game.teamAName} Statline</h4>
+                                                    </div>
                                                     <div className="overflow-x-auto rounded-xl border border-slate-850">
                                                         <table className="w-full text-left text-xs min-w-[750px]">
                                                             <thead>
                                                                 <tr className="bg-slate-950/80 text-slate-400 font-mono text-[10px] border-b border-slate-800">
                                                                     <th className="py-2.5 px-3">Player</th>
                                                                     <th className="py-2.5 px-2 text-center text-orange-400">PTS</th>
-                                                                    <th className="py-2.5 px-2 text-center text-emerald-400">FG%</th>
-                                                                    <th className="py-2.5 px-2 text-center text-cyan-400">3P%</th>
+                                                                    <th className="py-2.5 px-2 text-center text-emerald-400 font-bold">FG%</th>
+                                                                    <th className="py-2.5 px-2 text-center text-cyan-400 font-bold">3P%</th>
                                                                     <th className="py-2.5 px-2 text-center text-emerald-400">REB</th>
                                                                     <th className="py-2.5 px-2 text-center text-blue-400">AST</th>
                                                                     <th className="py-2.5 px-2 text-center text-teal-400">STL</th>
@@ -1032,27 +1077,27 @@
                                                                     <th className="py-2.5 px-2 text-center text-red-400">PF</th>
                                                                 </tr>
                                                             </thead>
-                                                            <tbody className="divide-y divide-slate-800/60 bg-slate-950/20 font-medium">
+                                                            <tbody className="divide-y divide-slate-800/60 bg-slate-950/20 font-medium font-mono text-slate-300">
                                                                 {teamAObj?.players
                                                                     .filter(p => game.playerStats[p.id])
                                                                     .map(player => {
                                                                         const pstats = game.playerStats[player.id];
                                                                         const pPct = computeShootingPercentages(pstats);
                                                                         return (
-                                                                            <tr key={player.id} className="hover:bg-slate-850/20 text-slate-300">
-                                                                                <td className="py-2 px-3 text-white font-bold">
+                                                                            <tr key={player.id} className="hover:bg-slate-850/20">
+                                                                                <td className="py-2 px-3 text-white font-bold font-sans">
                                                                                     <span className="text-slate-500 font-mono mr-1.5 text-[10px]">#{player.number}</span>
                                                                                     {player.name}
                                                                                 </td>
-                                                                                <td className="py-2 px-2 text-center text-orange-400 font-black font-mono">{pstats.pts}</td>
-                                                                                <td className="py-2 px-2 text-center text-emerald-400 font-bold font-mono">{pPct.fgPct}</td>
-                                                                                <td className="py-2 px-2 text-center text-cyan-400 font-bold font-mono">{pPct.fg3Pct}</td>
-                                                                                <td className="py-2 px-2 text-center text-emerald-400 font-mono">{pstats.reb}</td>
-                                                                                <td className="py-2 px-2 text-center text-blue-400 font-mono">{pstats.ast}</td>
-                                                                                <td className="py-2 px-2 text-center text-teal-400 font-mono">{(pstats.stl || 0)}</td>
-                                                                                <td className="py-2 px-2 text-center text-violet-400 font-mono">{(pstats.blk || 0)}</td>
-                                                                                <td className="py-2 px-2 text-center text-amber-500 font-mono">{pstats.to}</td>
-                                                                                <td className="py-2 px-2 text-center text-red-400 font-mono">{pstats.pf}</td>
+                                                                                <td className="py-2 px-2 text-center text-orange-400 font-black">{pstats.pts}</td>
+                                                                                <td className="py-2 px-2 text-center text-emerald-400 font-bold">{pPct.fgPct}</td>
+                                                                                <td className="py-2 px-2 text-center text-cyan-400 font-bold">{pPct.fg3Pct}</td>
+                                                                                <td className="py-2 px-2 text-center text-emerald-400">{pstats.reb}</td>
+                                                                                <td className="py-2 px-2 text-center text-blue-400">{pstats.ast}</td>
+                                                                                <td className="py-2 px-2 text-center text-teal-400">{(pstats.stl || 0)}</td>
+                                                                                <td className="py-2 px-2 text-center text-violet-400">{(pstats.blk || 0)}</td>
+                                                                                <td className="py-2 px-2 text-center text-amber-500">{pstats.to}</td>
+                                                                                <td className="py-2 px-2 text-center text-red-400">{pstats.pf}</td>
                                                                             </tr>
                                                                         );
                                                                     })}
@@ -1061,20 +1106,20 @@
                                                     </div>
                                                 </div>
 
-                                                {/* TEAM B BOXSCORE TABLE */}
-                                                <div className="space-y-2">
-                                                    <h4 className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5" style={{ color: teamBColor }}>
-                                                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: teamBColor }} />
-                                                        {game.teamBName}
-                                                    </h4>
+                                                {/* TEAM B STATLINE TABLE */}
+                                                <div className="space-y-2 mt-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: teamBObj?.color || '#ef4444' }} />
+                                                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200">{game.teamBName} Statline</h4>
+                                                    </div>
                                                     <div className="overflow-x-auto rounded-xl border border-slate-850">
                                                         <table className="w-full text-left text-xs min-w-[750px]">
                                                             <thead>
                                                                 <tr className="bg-slate-950/80 text-slate-400 font-mono text-[10px] border-b border-slate-800">
                                                                     <th className="py-2.5 px-3">Player</th>
                                                                     <th className="py-2.5 px-2 text-center text-orange-400">PTS</th>
-                                                                    <th className="py-2.5 px-2 text-center text-emerald-400">FG%</th>
-                                                                    <th className="py-2.5 px-2 text-center text-cyan-400">3P%</th>
+                                                                    <th className="py-2.5 px-2 text-center text-emerald-400 font-bold">FG%</th>
+                                                                    <th className="py-2.5 px-2 text-center text-cyan-400 font-bold">3P%</th>
                                                                     <th className="py-2.5 px-2 text-center text-emerald-400">REB</th>
                                                                     <th className="py-2.5 px-2 text-center text-blue-400">AST</th>
                                                                     <th className="py-2.5 px-2 text-center text-teal-400">STL</th>
@@ -1083,27 +1128,27 @@
                                                                     <th className="py-2.5 px-2 text-center text-red-400">PF</th>
                                                                 </tr>
                                                             </thead>
-                                                            <tbody className="divide-y divide-slate-800/60 bg-slate-950/20 font-medium">
+                                                            <tbody className="divide-y divide-slate-800/60 bg-slate-950/20 font-medium font-mono text-slate-300">
                                                                 {teamBObj?.players
                                                                     .filter(p => game.playerStats[p.id])
                                                                     .map(player => {
                                                                         const pstats = game.playerStats[player.id];
                                                                         const pPct = computeShootingPercentages(pstats);
                                                                         return (
-                                                                            <tr key={player.id} className="hover:bg-slate-850/20 text-slate-300">
-                                                                                <td className="py-2 px-3 text-white font-bold">
+                                                                            <tr key={player.id} className="hover:bg-slate-850/20">
+                                                                                <td className="py-2 px-3 text-white font-bold font-sans">
                                                                                     <span className="text-slate-500 font-mono mr-1.5 text-[10px]">#{player.number}</span>
                                                                                     {player.name}
                                                                                 </td>
-                                                                                <td className="py-2 px-2 text-center text-orange-400 font-black font-mono">{pstats.pts}</td>
-                                                                                <td className="py-2 px-2 text-center text-emerald-400 font-bold font-mono">{pPct.fgPct}</td>
-                                                                                <td className="py-2 px-2 text-center text-cyan-400 font-bold font-mono">{pPct.fg3Pct}</td>
-                                                                                <td className="py-2 px-2 text-center text-emerald-400 font-mono">{pstats.reb}</td>
-                                                                                <td className="py-2 px-2 text-center text-blue-400 font-mono">{pstats.ast}</td>
-                                                                                <td className="py-2 px-2 text-center text-teal-400 font-mono">{(pstats.stl || 0)}</td>
-                                                                                <td className="py-2 px-2 text-center text-violet-400 font-mono">{(pstats.blk || 0)}</td>
-                                                                                <td className="py-2 px-2 text-center text-amber-500 font-mono">{pstats.to}</td>
-                                                                                <td className="py-2 px-2 text-center text-red-400 font-mono">{pstats.pf}</td>
+                                                                                <td className="py-2 px-2 text-center text-orange-400 font-black">{pstats.pts}</td>
+                                                                                <td className="py-2 px-2 text-center text-emerald-400 font-bold">{pPct.fgPct}</td>
+                                                                                <td className="py-2 px-2 text-center text-cyan-400 font-bold">{pPct.fg3Pct}</td>
+                                                                                <td className="py-2 px-2 text-center text-emerald-400">{pstats.reb}</td>
+                                                                                <td className="py-2 px-2 text-center text-blue-400">{pstats.ast}</td>
+                                                                                <td className="py-2 px-2 text-center text-teal-400">{(pstats.stl || 0)}</td>
+                                                                                <td className="py-2 px-2 text-center text-violet-400">{(pstats.blk || 0)}</td>
+                                                                                <td className="py-2 px-2 text-center text-amber-500">{pstats.to}</td>
+                                                                                <td className="py-2 px-2 text-center text-red-400">{pstats.pf}</td>
                                                                             </tr>
                                                                         );
                                                                     })}
@@ -1119,7 +1164,7 @@
                             </div>
                         )}
 
-                        {/* TAB 4: COMPREHENSIVE ALL PLAYER LEADERBOARDS */}
+                        {/* TAB 4: COMPREHENSIVE ALL-PLAYER LEADERBOARD GRID */}
                         {activeTab === 'leaders' && (
                             <div className="space-y-6">
                                 <div>
@@ -1127,12 +1172,13 @@
                                     <p className="text-xs text-slate-400">Displaying performance standings across all active league roster fields.</p>
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                    
                                     {/* Panel 1: Scoring (PPG) */}
                                     <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col max-h-[350px]">
                                         <h4 className="font-extrabold text-[11px] uppercase text-orange-400 border-b border-slate-800 pb-2 mb-2 flex justify-between"><span>Scoring (PPG)</span> <span>PTS</span></h4>
                                         <div className="space-y-2 overflow-y-auto flex-1 pr-1 text-xs font-medium">
-                                            {teams.flatMap(t => t.players.map(p => ({ ...p, avg: getAverages(p) }))).sort((a,b) => parseFloat(b.avg.pts) - parseFloat(a.avg.pts)).map((p, i) => (
+                                            {teams.flatMap(t => t.players.map(p => ({ ...p, team: t.name, avg: getAverages(p) }))).sort((a,b) => parseFloat(b.avg.pts) - parseFloat(a.avg.pts)).map((p, i) => (
                                                 <div key={p.id} className="flex justify-between border-b border-slate-850/40 py-1.5 last:border-0"><span className="truncate text-slate-300"><strong className="font-mono text-slate-500 mr-1">#{i+1}</strong>{p.name}</span><span className="font-mono font-bold text-orange-400 bg-orange-500/5 px-1.5 rounded">{p.avg.pts}</span></div>
                                             ))}
                                         </div>
@@ -1142,7 +1188,7 @@
                                     <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col max-h-[350px]">
                                         <h4 className="font-extrabold text-[11px] uppercase text-emerald-400 border-b border-slate-800 pb-2 mb-2 flex justify-between"><span>Boards (RPG)</span> <span>REB</span></h4>
                                         <div className="space-y-2 overflow-y-auto flex-1 pr-1 text-xs font-medium">
-                                            {teams.flatMap(t => t.players.map(p => ({ ...p, avg: getAverages(p) }))).sort((a,b) => parseFloat(b.avg.reb) - parseFloat(a.avg.reb)).map((p, i) => (
+                                            {teams.flatMap(t => t.players.map(p => ({ ...p, team: t.name, avg: getAverages(p) }))).sort((a,b) => parseFloat(b.avg.reb) - parseFloat(a.avg.reb)).map((p, i) => (
                                                 <div key={p.id} className="flex justify-between border-b border-slate-850/40 py-1.5 last:border-0"><span className="truncate text-slate-300"><strong className="font-mono text-slate-500 mr-1">#{i+1}</strong>{p.name}</span><span className="font-mono font-bold text-emerald-400 bg-emerald-500/5 px-1.5 rounded">{p.avg.reb}</span></div>
                                             ))}
                                         </div>
@@ -1152,7 +1198,7 @@
                                     <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col max-h-[350px]">
                                         <h4 className="font-extrabold text-[11px] uppercase text-blue-400 border-b border-slate-800 pb-2 mb-2 flex justify-between"><span>Assists (APG)</span> <span>AST</span></h4>
                                         <div className="space-y-2 overflow-y-auto flex-1 pr-1 text-xs font-medium">
-                                            {teams.flatMap(t => t.players.map(p => ({ ...p, avg: getAverages(p) }))).sort((a,b) => parseFloat(b.avg.ast) - parseFloat(a.avg.ast)).map((p, i) => (
+                                            {teams.flatMap(t => t.players.map(p => ({ ...p, team: t.name, avg: getAverages(p) }))).sort((a,b) => parseFloat(b.avg.ast) - parseFloat(a.avg.ast)).map((p, i) => (
                                                 <div key={p.id} className="flex justify-between border-b border-slate-850/40 py-1.5 last:border-0"><span className="truncate text-slate-300"><strong className="font-mono text-slate-500 mr-1">#{i+1}</strong>{p.name}</span><span className="font-mono font-bold text-blue-400 bg-blue-500/5 px-1.5 rounded">{p.avg.ast}</span></div>
                                             ))}
                                         </div>
@@ -1162,8 +1208,8 @@
                                     <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col max-h-[350px]">
                                         <h4 className="font-extrabold text-[11px] uppercase text-teal-400 border-b border-slate-800 pb-2 mb-2 flex justify-between"><span>Steals (SPG)</span> <span>STL</span></h4>
                                         <div className="space-y-2 overflow-y-auto flex-1 pr-1 text-xs font-medium">
-                                            {teams.flatMap(t => t.players.map(p => ({ ...p, avg: getAverages(p) }))).sort((a,b) => parseFloat(b.avg.stl) - parseFloat(a.avg.stl)).map((p, i) => (
-                                                <div key={p.id} className="flex justify-between border-b border-slate-850/40 py-1.5 last:border-0"><span className="truncate text-slate-300"><strong className="font-mono text-slate-500 mr-1">#{i+1}</strong>{p.name}</span><span className="font-mono font-bold text-teal-400 bg-teal-500/5 px-1.5 rounded">{p.avg.stl}</span></div>
+                                            {teams.flatMap(t => t.players.map(p => ({ ...p, team: t.name, avg: getAverages(p) }))).sort((a,b) => parseFloat(b.avg.spg) - parseFloat(a.avg.spg)).map((p, i) => (
+                                                <div key={p.id} className="flex justify-between border-b border-slate-850/40 py-1.5 last:border-0"><span className="truncate text-slate-300"><strong className="font-mono text-slate-500 mr-1">#{i+1}</strong>{p.name}</span><span className="font-mono font-bold text-teal-400 bg-teal-500/5 px-1.5 rounded">{p.avg.spg}</span></div>
                                             ))}
                                         </div>
                                     </div>
@@ -1172,8 +1218,8 @@
                                     <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col max-h-[350px]">
                                         <h4 className="font-extrabold text-[11px] uppercase text-violet-400 border-b border-slate-800 pb-2 mb-2 flex justify-between"><span>Blocks (BPG)</span> <span>BLK</span></h4>
                                         <div className="space-y-2 overflow-y-auto flex-1 pr-1 text-xs font-medium">
-                                            {teams.flatMap(t => t.players.map(p => ({ ...p, avg: getAverages(p) }))).sort((a,b) => parseFloat(b.avg.blk) - parseFloat(a.avg.blk)).map((p, i) => (
-                                                <div key={p.id} className="flex justify-between border-b border-slate-850/40 py-1.5 last:border-0"><span className="truncate text-slate-300"><strong className="font-mono text-slate-500 mr-1">#{i+1}</strong>{p.name}</span><span className="font-mono font-bold text-violet-400 bg-violet-500/5 px-1.5 rounded">{p.avg.blk}</span></div>
+                                            {teams.flatMap(t => t.players.map(p => ({ ...p, team: t.name, avg: getAverages(p) }))).sort((a,b) => parseFloat(b.avg.bpg) - parseFloat(a.avg.bpg)).map((p, i) => (
+                                                <div key={p.id} className="flex justify-between border-b border-slate-850/40 py-1.5 last:border-0"><span className="truncate text-slate-300"><strong className="font-mono text-slate-500 mr-1">#{i+1}</strong>{p.name}</span><span className="font-mono font-bold text-violet-400 bg-violet-500/5 px-1.5 rounded">{p.avg.bpg}</span></div>
                                             ))}
                                         </div>
                                     </div>
@@ -1182,7 +1228,7 @@
                                     <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col max-h-[350px]">
                                         <h4 className="font-extrabold text-[11px] uppercase text-red-400 border-b border-slate-800 pb-2 mb-2 flex justify-between"><span>Turnovers (TOPG)</span> <span>TO</span></h4>
                                         <div className="space-y-2 overflow-y-auto flex-1 pr-1 text-xs font-medium">
-                                            {teams.flatMap(t => t.players.map(p => ({ ...p, avg: getAverages(p) }))).sort((a,b) => parseFloat(b.avg.to) - parseFloat(a.avg.to)).map((p, i) => (
+                                            {teams.flatMap(t => t.players.map(p => ({ ...p, team: t.name, avg: getAverages(p) }))).sort((a,b) => parseFloat(b.avg.to) - parseFloat(a.avg.to)).map((p, i) => (
                                                 <div key={p.id} className="flex justify-between border-b border-slate-850/40 py-1.5 last:border-0"><span className="truncate text-slate-300"><strong className="font-mono text-slate-500 mr-1">#{i+1}</strong>{p.name}</span><span className="font-mono font-bold text-red-400 bg-red-500/5 px-1.5 rounded">{p.avg.to}</span></div>
                                             ))}
                                         </div>
@@ -1192,7 +1238,7 @@
                                     <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col max-h-[350px]">
                                         <h4 className="font-extrabold text-[11px] uppercase text-cyan-400 border-b border-slate-800 pb-2 mb-2 flex justify-between"><span>Efficiency (FG%)</span> <span>FG%</span></h4>
                                         <div className="space-y-2 overflow-y-auto flex-1 pr-1 text-xs font-medium">
-                                            {teams.flatMap(t => t.players.map(p => ({ ...p, avg: getAverages(p) }))).sort((a,b) => parseFloat(b.avg.fgPct) - parseFloat(a.avg.fgPct)).map((p, i) => (
+                                            {teams.flatMap(t => t.players.map(p => ({ ...p, team: t.name, avg: getAverages(p) }))).sort((a,b) => parseFloat(b.avg.fgPct) - parseFloat(a.avg.fgPct)).map((p, i) => (
                                                 <div key={p.id} className="flex justify-between border-b border-slate-850/40 py-1.5 last:border-0"><span className="truncate text-slate-300"><strong className="font-mono text-slate-500 mr-1">#{i+1}</strong>{p.name}</span><span className="font-mono font-bold text-cyan-400 bg-cyan-500/5 px-1.5 rounded">{p.avg.fgPct}</span></div>
                                             ))}
                                         </div>
@@ -1202,7 +1248,7 @@
                                     <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col max-h-[350px]">
                                         <h4 className="font-extrabold text-[11px] uppercase text-sky-400 border-b border-slate-800 pb-2 mb-2 flex justify-between"><span>Perimeter (3P%)</span> <span>3P%</span></h4>
                                         <div className="space-y-2 overflow-y-auto flex-1 pr-1 text-xs font-medium">
-                                            {teams.flatMap(t => t.players.map(p => ({ ...p, avg: getAverages(p) }))).sort((a,b) => parseFloat(b.avg.fg3Pct) - parseFloat(a.avg.fg3Pct)).map((p, i) => (
+                                            {teams.flatMap(t => t.players.map(p => ({ ...p, team: t.name, avg: getAverages(p) }))).sort((a,b) => parseFloat(b.avg.fg3Pct) - parseFloat(a.avg.fg3Pct)).map((p, i) => (
                                                 <div key={p.id} className="flex justify-between border-b border-slate-850/40 py-1.5 last:border-0"><span className="truncate text-slate-300"><strong className="font-mono text-slate-500 mr-1">#{i+1}</strong>{p.name}</span><span className="font-mono font-bold text-sky-400 bg-sky-500/5 px-1.5 rounded">{p.avg.fg3Pct}</span></div>
                                             ))}
                                         </div>
@@ -1212,7 +1258,7 @@
                                     <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col max-h-[350px]">
                                         <h4 className="font-extrabold text-[11px] uppercase text-rose-400 border-b border-slate-800 pb-2 mb-2 flex justify-between"><span>Fouls (PF/G)</span> <span>PF</span></h4>
                                         <div className="space-y-2 overflow-y-auto flex-1 pr-1 text-xs font-medium">
-                                            {teams.flatMap(t => t.players.map(p => ({ ...p, avg: getAverages(p) }))).sort((a,b) => parseFloat(b.avg.pf) - parseFloat(a.avg.pf)).map((p, i) => (
+                                            {teams.flatMap(t => t.players.map(p => ({ ...p, team: t.name, avg: getAverages(p) }))).sort((a,b) => parseFloat(b.avg.pf) - parseFloat(a.avg.pf)).map((p, i) => (
                                                 <div key={p.id} className="flex justify-between border-b border-slate-850/40 py-1.5 last:border-0"><span className="truncate text-slate-300"><strong className="font-mono text-slate-500 mr-1">#{i+1}</strong>{p.name}</span><span className="font-mono font-bold text-rose-400 bg-rose-500/5 px-1.5 rounded">{p.avg.pf}</span></div>
                                             ))}
                                         </div>
@@ -1223,8 +1269,8 @@
                     </main>
 
                     {/* FOOTER BAR */}
-                    <footer className="mt-16 pt-5 border-t border-slate-850 text-center text-[11px] text-slate-500">
-                        <p>© 2026 League Statistician Console. Securely saving records in real-time Cloud Sync.</p>
+                    <footer className="mt-16 pt-5 border-t border-slate-850 text-center text-[11px] text-slate-500 font-semibold uppercase tracking-wider font-mono">
+                        <p>© 2026 WKND League Stats. Securely saving records in real-time Cloud Sync.</p>
                     </footer>
 
                     {/* MODAL WRAPPERS */}
@@ -1286,9 +1332,10 @@
                         </div>
                     )}
 
+                    {/* RECONFIGURED SINGLE TAP WORKFLOW MODAL DIALOG CONTAINER */}
                     {showLoggingModal && activeAction && (
                         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-                            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl w-full max-w-2xl shadow-2xl relative">
+                            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl w-full max-w-2xl shadow-2xl relative my-auto">
                                 <div className="text-center mb-3">
                                     <h3 className="text-sm font-black text-white">Record Action: <span className="text-emerald-400 font-mono">{activeAction.label}</span></h3>
                                 </div>
@@ -1317,6 +1364,36 @@
                         </div>
                     )}
 
+                    {/* FOUL WARNING MODAL OVERLAY */}
+                    {foulAlert && (
+                        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+                            <div className={`border p-6 rounded-2xl w-full max-w-sm shadow-2xl relative text-center my-auto ${
+                                foulAlert.type === 'disqualified' ? 'bg-red-950/90 border-red-500' : 'bg-amber-950/90 border-amber-500'
+                            }`}>
+                                <div className="text-4xl mb-3">
+                                    {foulAlert.type === 'disqualified' ? '🚨' : '⚠️'}
+                                </div>
+                                <h3 className="text-lg font-black text-white uppercase tracking-wider mb-2">
+                                    {foulAlert.type === 'disqualified' ? 'Fouled Out (Disqualified)' : 'Foul Trouble Warning'}
+                                </h3>
+                                <p className="text-sm text-slate-200 leading-relaxed mb-4">
+                                    <strong className="text-white">#{foulAlert.number} {foulAlert.playerName}</strong> has reached <strong className="text-orange-400">{foulAlert.fouls} personal fouls</strong>.
+                                    {foulAlert.type === 'disqualified' 
+                                        ? ' This player has officially fouled out and must be substituted off the court.' 
+                                        : ' They are now in severe foul trouble and are only one foul away from disqualification.'}
+                                </p>
+                                <button 
+                                    onClick={() => setFoulAlert(null)}
+                                    className={`w-full py-2.5 rounded-xl text-xs font-bold text-white transition-colors cursor-pointer ${
+                                        foulAlert.type === 'disqualified' ? 'bg-red-600 hover:bg-red-500' : 'bg-amber-600 hover:bg-amber-500'
+                                    }`}
+                                >
+                                    Acknowledge Alert
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
                     {confirmDialog && (
                         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
                             <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl w-full max-w-sm relative">
@@ -1326,37 +1403,6 @@
                                     <button onClick={() => setConfirmDialog(null)} className="flex-1 py-2 bg-slate-950 text-slate-400 rounded-xl border border-slate-850">Cancel</button>
                                     <button onClick={confirmDialog.onConfirm} className="flex-1 py-2 bg-red-600 text-white rounded-xl">Confirm</button>
                                 </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {foulAlert && (
-                        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-                            <div className={`border p-6 rounded-2xl w-full max-w-sm shadow-2xl relative my-auto text-center transform scale-100 transition-transform ${
-                                foulAlert.type === 'fouled_out' ? 'bg-red-950/95 border-red-500' : 'bg-amber-950/95 border-amber-500'
-                            }`}>
-                                <div className="flex justify-center mb-3 text-4xl">
-                                    {foulAlert.type === 'fouled_out' ? '🚨' : '⚠️'}
-                                </div>
-                                <h3 className="text-base font-extrabold text-white mb-1 uppercase tracking-wider">
-                                    {foulAlert.type === 'fouled_out' ? 'Athlete Fouled Out' : 'Foul Trouble Warning'}
-                                </h3>
-                                <p className="text-slate-300 text-xs font-semibold mb-4 leading-relaxed">
-                                    #{foulAlert.playerNumber} {foulAlert.playerName} has committed personal foul #{foulAlert.count}!
-                                </p>
-                                {foulAlert.type === 'fouled_out' ? (
-                                    <p className="text-red-400 text-[11px] font-bold mb-6">This athlete has reached 5 fouls and is disqualified from the match.</p>
-                                ) : (
-                                    <p className="text-amber-400 text-[11px] font-bold mb-6">Careful! One more personal foul will result in disqualification.</p>
-                                )}
-                                <button 
-                                    onClick={() => setFoulAlert(null)}
-                                    className={`w-full py-2 rounded-xl text-xs font-bold text-white transition-all shadow-md cursor-pointer ${
-                                        foulAlert.type === 'fouled_out' ? 'bg-red-600 hover:bg-red-500 shadow-red-500/15' : 'bg-amber-600 hover:bg-amber-500 shadow-amber-500/15'
-                                    }`}
-                                >
-                                    Acknowledge
-                                </button>
                             </div>
                         </div>
                     )}
