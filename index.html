@@ -39,6 +39,15 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #475569;
         }
+        /* Animated pulsing ring for armed action state */
+        @keyframes targetPulse {
+            0%, 100% { border-color: rgba(16, 185, 129, 0.4); box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.2); }
+            50% { border-color: rgba(16, 185, 129, 0.9); box-shadow: 0 0 10px 3px rgba(16, 185, 129, 0.4); }
+        }
+        .armed-target {
+            animation: targetPulse 1.8s infinite ease-in-out;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body class="min-h-screen">
@@ -46,6 +55,7 @@
     <div id="root"></div>
 
     <script type="module">
+        /* STREAMING_CHUNK: Initializing Firebase configuration */
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -71,6 +81,7 @@
     </script>
 
     <script type="text/babel">
+        /* STREAMING_CHUNK: Configuring custom icons & baseline components */
         const { useState, useEffect, useRef } = React;
 
         const Icons = {
@@ -129,6 +140,7 @@
             { id: 'pf', label: '+1 FOUL', category: 'deficit', stat: 'pf', val: 1, colorClass: 'bg-red-800 hover:bg-red-700 text-white border-red-700 shadow-sm' }
         ];
 
+        /* STREAMING_CHUNK: Setting up App Component states and confirmation boxes */
         function App() {
             const [teams, setTeams] = useState([]);
             const [games, setGames] = useState([]);
@@ -155,6 +167,11 @@
             const [showLoggingModal, setShowLoggingModal] = useState(false);
 
             const [activeMobileConsoleTab, setActiveMobileConsoleTab] = useState('home');
+
+            // Historic Boxscore Editing States
+            const [editingGame, setEditingGame] = useState(null); // Game object being edited
+            const [editStatsTemp, setEditStatsTemp] = useState({}); // Temporary Copy Copy Copy
+            const [expandedEditPlayerId, setExpandedEditPlayerId] = useState(null);
 
             const [showNewTeamModal, setShowNewTeamModal] = useState(false);
             const [newTeamName, setNewTeamName] = useState("");
@@ -277,6 +294,77 @@
                         }
                     } catch (err) {
                         showToast("Failed to process roster upload.", "error");
+                    }
+                };
+            };
+
+            /* STREAMING_CHUNK: Building custom CSV reader */
+            const handleImportCSV = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.readAsText(file);
+                reader.onload = (event) => {
+                    try {
+                        const text = event.target.result;
+                        // Split line breaks and parse CSV columns
+                        const lines = text.split('\n').map(line => line.split(',').map(cell => cell.trim().replace(/^["']|["']$/g, '')));
+                        if (lines.length < 2) {
+                            showToast("CSV file is empty or invalid.", "error");
+                            return;
+                        }
+                        
+                        const headers = lines[0].map(h => h.toLowerCase());
+                        const teamIndex = headers.findIndex(h => h.includes('team'));
+                        const nameIndex = headers.findIndex(h => h.includes('name') || h.includes('player'));
+                        const numberIndex = headers.findIndex(h => h.includes('number') || h.includes('jersey') || h.includes('no'));
+
+                        if (teamIndex === -1 || nameIndex === -1) {
+                            showToast("CSV must have 'Team' and 'Name' columns.", "error");
+                            return;
+                        }
+
+                        const teamMap = {};
+                        const colors = ["#10b981", "#ef4444", "#3b82f6", "#f59e0b", "#8b5cf6", "#ec4899", "#14b8a6", "#f97316"];
+                        let colorIdx = 0;
+
+                        for (let i = 1; i < lines.length; i++) {
+                            const row = lines[i];
+                            if (row.length < 2 || !row[teamIndex] || !row[nameIndex]) continue;
+
+                            const teamName = row[teamIndex];
+                            const playerName = row[nameIndex];
+                            const playerNo = numberIndex !== -1 ? row[numberIndex] : "00";
+
+                            if (!teamMap[teamName]) {
+                                teamMap[teamName] = {
+                                    id: `team_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+                                    name: teamName,
+                                    color: colors[colorIdx % colors.length],
+                                    players: []
+                                };
+                                colorIdx++;
+                            }
+
+                            teamMap[teamName].players.push({
+                                id: `player_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+                                name: playerName,
+                                number: playerNo || "00",
+                                gamesPlayed: 0,
+                                totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 }
+                            });
+                        }
+
+                        const parsedTeams = Object.values(teamMap);
+                        if (parsedTeams.length === 0) {
+                            showToast("No valid rosters found in CSV.", "error");
+                            return;
+                        }
+
+                        saveTeamState(parsedTeams);
+                        showToast(`Imported ${parsedTeams.length} teams from CSV!`, "success");
+                    } catch (err) {
+                        showToast("Failed to parse CSV file.", "error");
                     }
                 };
             };
@@ -506,6 +594,7 @@
                 setIsGameLive(true);
             };
 
+            /* STREAMING_CHUNK: Integrating warning/disqualified modal alert flow */
             const handlePlayerClick = (playerId, isTeamA) => {
                 if (!activeAction) return;
 
@@ -601,6 +690,89 @@
                 setSubTargetPlayer(null);
             };
 
+            /* STREAMING_CHUNK: Aligning historical box scores edits */
+            const handleSaveHistoricEdit = (e) => {
+                e.preventDefault();
+                if (!editingGame) return;
+
+                let newTeamAScore = 0;
+                let newTeamBScore = 0;
+                const teamAObj = teams.find(t => t.id === editingGame.teamAId);
+                const teamBObj = teams.find(t => t.id === editingGame.teamBId);
+
+                if (teamAObj) {
+                    teamAObj.players.forEach(p => {
+                        newTeamAScore += parseInt(editStatsTemp[p.id]?.pts || 0, 10);
+                    });
+                }
+                if (teamBObj) {
+                    teamBObj.players.forEach(p => {
+                        newTeamBScore += parseInt(editStatsTemp[p.id]?.pts || 0, 10);
+                    });
+                }
+
+                const updatedTeams = teams.map(t => {
+                    if (t.id !== editingGame.teamAId && t.id !== editingGame.teamBId) return t;
+
+                    const updatedPlayers = t.players.map(p => {
+                        const oldPStats = editingGame.playerStats[p.id] || { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 };
+                        const newPStats = editStatsTemp[p.id] || { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 };
+
+                        const delta = (field) => parseInt(newPStats[field] || 0, 10) - parseInt(oldPStats[field] || 0, 10);
+
+                        return {
+                            ...p,
+                            totalStats: {
+                                pts: Math.max(0, (p.totalStats.pts || 0) + delta('pts')),
+                                ast: Math.max(0, (p.totalStats.ast || 0) + delta('ast')),
+                                reb: Math.max(0, (p.totalStats.reb || 0) + delta('reb')),
+                                stl: Math.max(0, (p.totalStats.stl || 0) + delta('stl')),
+                                blk: Math.max(0, (p.totalStats.blk || 0) + delta('blk')),
+                                to: Math.max(0, (p.totalStats.to || 0) + delta('to')),
+                                pf: Math.max(0, (p.totalStats.pf || 0) + delta('pf')),
+                                fg2m: Math.max(0, (p.totalStats.fg2m || 0) + delta('fg2m')),
+                                fg3m: Math.max(0, (p.totalStats.fg3m || 0) + delta('fg3m')),
+                                fg2m_miss: Math.max(0, (p.totalStats.fg2m_miss || 0) + delta('fg2m_miss')),
+                                fg3m_miss: Math.max(0, (p.totalStats.fg3m_miss || 0) + delta('fg3m_miss'))
+                            }
+                        };
+                    });
+                    return { ...t, players: updatedPlayers };
+                });
+
+                const updatedGames = games.map(g => {
+                    if (g.id === editingGame.id) {
+                        return {
+                            ...g,
+                            teamAScore: newTeamAScore,
+                            teamBScore: newTeamBScore,
+                            playerStats: editStatsTemp
+                        };
+                    }
+                    return g;
+                });
+
+                setGames(updatedGames);
+                saveTeamState(updatedTeams);
+
+                if (!window.firebaseDb) {
+                    localStorage.setItem('stat_games', JSON.stringify(updatedGames));
+                } else {
+                    const { doc, setDoc } = window.firebaseUtils;
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'wknd-league-stats';
+                    setDoc(doc(window.firebaseDb, 'artifacts', appId, 'public', 'data', 'games', editingGame.id), {
+                        ...editingGame,
+                        teamAScore: newTeamAScore,
+                        teamBScore: newTeamBScore,
+                        playerStats: editStatsTemp
+                    });
+                }
+
+                setEditingGame(null);
+                setExpandedEditPlayerId(null);
+                showToast("Box score updated and career averages recalculated!", "success");
+            };
+
             const handleEndGame = () => {
                 const teamAObj = teams.find(t => t.id === teamAId);
                 const teamBObj = teams.find(t => t.id === teamBId);
@@ -616,13 +788,13 @@
                             ...p,
                             gamesPlayed: p.gamesPlayed + 1,
                             totalStats: {
-                                pts: (p.totalStats.pts || 0) + (statObj.pts || 0),
-                                ast: (p.totalStats.ast || 0) + (statObj.ast || 0),
-                                reb: (p.totalStats.reb || 0) + (statObj.reb || 0),
-                                stl: (p.totalStats.stl || 0) + (statObj.stl || 0),
-                                blk: (p.totalStats.blk || 0) + (statObj.blk || 0),
-                                to: (p.totalStats.to || 0) + (statObj.to || 0),
-                                pf: (p.totalStats.pf || 0) + (statObj.pf || 0),
+                                pts: p.totalStats.pts + (statObj.pts || 0),
+                                ast: p.totalStats.ast + (statObj.ast || 0),
+                                reb: p.totalStats.reb + (statObj.reb || 0),
+                                stl: p.totalStats.stl + (statObj.stl || 0),
+                                blk: p.totalStats.blk + (statObj.blk || 0),
+                                to: p.totalStats.to + (statObj.to || 0),
+                                pf: p.totalStats.pf + (statObj.pf || 0),
                                 fg2m: (p.totalStats.fg2m || 0) + (statObj.fg2m || 0),
                                 fg3m: (p.totalStats.fg3m || 0) + (statObj.fg3m || 0),
                                 fg2m_miss: (p.totalStats.fg2m_miss || 0) + (statObj.fg2m_miss || 0),
@@ -638,6 +810,42 @@
                 setActiveAction(null);
                 localStorage.removeItem('active_live_session');
                 setActiveTab('history');
+            };
+
+            const handleResetMatch = () => {
+                setConfirmDialog({
+                    title: "Clear & Restart Match?",
+                    text: "This will permanently wipe all current scores, timeline logs, and active stats back to 0. Competing teams will remain selected.",
+                    onConfirm: () => {
+                        const teamAObj = teams.find(t => t.id === teamAId);
+                        const teamBObj = teams.find(t => t.id === teamBId);
+                        if (!teamAObj || !teamBObj) return;
+
+                        const startersA = teamAObj.players.slice(0, 5).map(p => p.id);
+                        const benchA = teamAObj.players.slice(5).map(p => p.id);
+                        const startersB = teamBObj.players.slice(0, 5).map(p => p.id);
+                        const benchB = teamBObj.players.slice(5).map(p => p.id);
+
+                        setTeamALineup(startersA);
+                        setTeamABench(benchA);
+                        setTeamBLineup(startersB);
+                        setTeamBBench(benchB);
+
+                        const initializedStats = {};
+                        teamAObj.players.forEach(p => { initializedStats[p.id] = { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 }; });
+                        teamBObj.players.forEach(p => { initializedStats[p.id] = { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 }; });
+
+                        setLiveStats(initializedStats);
+                        setTeamAScore(0);
+                        setTeamBScore(0);
+                        setActiveAction(null);
+                        setCorrectionMode(false);
+                        setLoggedHistory([]);
+                        setGameLog([{ time: getWallClockTime(), text: `Match restarted: ${teamAObj.name} vs ${teamBObj.name}` }]);
+                        setConfirmDialog(null);
+                        showToast("Current game stats cleared! Ready to restart.", "info");
+                    }
+                });
             };
 
             const handleCreateTeam = (e) => {
@@ -749,12 +957,12 @@
                                 <div className="flex items-center gap-1.5">
                                     <span className="font-extrabold text-sm text-white block truncate">{player.name}</span>
                                     {isDisqualified && (
-                                        <span className="px-1.5 py-0.5 bg-red-950 border border-red-700 text-red-400 text-[9px] font-black rounded uppercase animate-pulse">
+                                        <span className="px-1.5 py-0.5 bg-red-955 border border-red-750 text-red-400 text-[9px] font-black rounded uppercase animate-pulse">
                                             🚨 OUT (5 PF)
                                         </span>
                                     )}
                                     {isWarning && (
-                                        <span className="px-1.5 py-0.5 bg-amber-950 border border-amber-700 text-amber-400 text-[9px] font-black rounded uppercase animate-bounce">
+                                        <span className="px-1.5 py-0.5 bg-amber-955 border border-amber-700 text-amber-400 text-[9px] font-black rounded uppercase animate-bounce">
                                             ⚠️ 4 PF
                                         </span>
                                     )}
@@ -792,6 +1000,7 @@
                 );
             };
 
+            /* STREAMING_CHUNK: Processing Layout View Renderers */
             return (
                 <div className="max-w-7xl mx-auto px-4 py-4 md:py-8">
                     
@@ -918,7 +1127,7 @@
                                         </div>
 
                                         {/* Mobile Tab Toggles */}
-                                        <div className="col-span-12 md:hidden flex bg-slate-950 p-1.5 rounded-xl border border-slate-850 gap-1">
+                                        <div className="col-span-12 md:hidden flex bg-slate-950 p-1.5 rounded-xl border border-slate-855 gap-1">
                                             <button onClick={() => setActiveMobileConsoleTab('home')} className={`flex-1 py-1.5 text-center text-xs font-bold rounded-lg ${activeMobileConsoleTab === 'home' ? 'bg-slate-800 text-white' : 'text-slate-400'}`}>🏠 Home lineup</button>
                                             <button onClick={() => setActiveMobileConsoleTab('away')} className={`flex-1 py-1.5 text-center text-xs font-bold rounded-lg ${activeMobileConsoleTab === 'away' ? 'bg-slate-800 text-white' : 'text-slate-400'}`}>🚌 Away lineup</button>
                                         </div>
@@ -940,7 +1149,54 @@
                                             <div className="bg-slate-900 border border-slate-800 p-3 rounded-xl flex-1 max-h-[180px] overflow-y-auto font-mono text-[10px]">
                                                 {gameLog.map((log, idx) => <div key={idx} className="border-b border-slate-850 py-1 text-slate-300"><span className="text-amber-500">[{log.time.split(' ')[0]}]</span> {log.text}</div>)}
                                             </div>
-                                            <button onClick={() => setConfirmDialog({ title: "Save Match?", text: "Commit statistics to histories.", onConfirm: () => { handleEndGame(); setConfirmDialog(null); } })} className="w-full bg-emerald-600 font-bold py-2 rounded-xl text-xs text-white">Save Boxscore</button>
+                                            
+                                            {/* Game Controls Save Box */}
+                                            <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl md:rounded-2xl space-y-3">
+                                                <div className="space-y-1.5">
+                                                    <button 
+                                                        onClick={() => {
+                                                            setConfirmDialog({
+                                                                title: "End Match Session?",
+                                                                text: "Lock in these figures to upgrade stats across both rosters permanent profiles.",
+                                                                onConfirm: () => {
+                                                                    handleEndGame();
+                                                                    setConfirmDialog(null);
+                                                                }
+                                                            });
+                                                        }}
+                                                        className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-3 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
+                                                    >
+                                                        Save & End Official Game
+                                                    </button>
+                                                    
+                                                    {/* Clear & Restart Button */}
+                                                    <button 
+                                                        type="button"
+                                                        onClick={handleResetMatch}
+                                                        className="w-full bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/40 text-amber-400 font-bold py-2 px-3 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                                                    >
+                                                        Clear & Restart Game
+                                                    </button>
+
+                                                    <button 
+                                                        onClick={() => {
+                                                            setConfirmDialog({
+                                                                title: "Cancel Match?",
+                                                                text: "This deletes all active progress for this session. No logs will be saved to disk.",
+                                                                onConfirm: () => {
+                                                                    setIsGameLive(false);
+                                                                    setActiveAction(null);
+                                                                    setConfirmDialog(null);
+                                                                    showToast("Live session terminated.", "info");
+                                                                }
+                                                            });
+                                                        }}
+                                                        className="w-full bg-slate-950/60 hover:text-red-300 hover:border-red-900 border border-slate-855 text-slate-500 text-xs py-1.5 rounded-xl transition-all cursor-pointer"
+                                                    >
+                                                        Discard Match
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 )}
@@ -952,11 +1208,18 @@
                             <div className="space-y-4">
                                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-slate-950 p-4 rounded-xl border border-slate-850">
                                     <div>
-                                        <h3 className="text-base font-bold text-white">Division Rosters</h3>
+                                        <h3 className="text-base font-bold text-white font-sans">Division Rosters</h3>
                                     </div>
-                                    <div className="flex flex-wrap gap-1.5 text-xs font-bold">
+                                    <div className="flex flex-wrap gap-1.5 text-xs font-bold font-sans">
                                         <button onClick={handleExportRostersOnly} className="bg-slate-900 px-3 py-1.5 rounded border border-slate-800 text-slate-300">Export Templates</button>
                                         <label className="bg-slate-900 px-3 py-1.5 rounded border border-slate-800 text-slate-300 cursor-pointer">Import Templates<input type="file" accept=".json" onChange={handleImportRostersOnly} className="hidden" /></label>
+                                        
+                                        {/* SMART CSV ROSTER IMPORTER DOCK BUTTON */}
+                                        <label className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded cursor-pointer transition-colors">
+                                            Import CSV Roster (Sheets)
+                                            <input type="file" accept=".csv" onChange={handleImportCSV} className="hidden" />
+                                        </label>
+
                                         <button onClick={handleExportData} className="bg-slate-900 px-3 py-1.5 rounded border border-slate-800 text-slate-300">Export DB</button>
                                         <label className="bg-slate-900 px-3 py-1.5 rounded border border-slate-800 text-slate-300 cursor-pointer">Restore DB<input type="file" accept=".json" onChange={handleImportData} className="hidden" /></label>
                                         <label className="bg-slate-900 px-3 py-1.5 rounded border border-slate-850 text-emerald-400 cursor-pointer">Merge Matches<input type="file" accept=".json" onChange={handleMergeData} className="hidden" /></label>
@@ -983,8 +1246,8 @@
                                                             <th className="py-2 px-4">Name</th>
                                                             <th className="py-2 px-2 text-center">GP</th>
                                                             <th className="py-2 px-2 text-center text-orange-400">PPG</th>
-                                                            <th className="py-2 px-2 text-center text-emerald-400">FG%</th>
-                                                            <th className="py-2 px-2 text-center text-cyan-400">3P%</th>
+                                                            <th className="py-2 px-2 text-center text-emerald-400 font-bold">FG%</th>
+                                                            <th className="py-2 px-2 text-center text-cyan-400 font-bold">3P%</th>
                                                             <th className="py-2 px-2 text-center text-emerald-400">RPG</th>
                                                             <th className="py-2 px-2 text-center text-blue-400">APG</th>
                                                             <th className="py-2 px-2 text-center text-teal-400">SPG</th>
@@ -1029,7 +1292,7 @@
                         {activeTab === 'history' && (
                             <div className="space-y-6">
                                 <div>
-                                    <h3 className="text-xl font-bold text-white">League Game Records</h3>
+                                    <h3 className="text-xl font-bold text-white font-sans">League Game Records</h3>
                                     <p className="text-xs text-slate-400">Review comprehensive historical charts and active box score rosters below.</p>
                                 </div>
 
@@ -1052,7 +1315,21 @@
                                                         </span>
                                                         <span className="text-[10px] text-slate-500 font-mono mt-0.5 block">Match ID: {game.id}</span>
                                                     </div>
-                                                    <span className="font-mono text-xs font-bold text-slate-400 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg self-start sm:self-auto">{game.date}</span>
+                                                    <div className="flex items-center gap-2 self-stretch sm:self-auto justify-between sm:justify-end">
+                                                        <span className="font-mono text-xs font-bold text-slate-400 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg">{game.date}</span>
+                                                        
+                                                        {/* EDIT SYSTEM INITIATOR TRIGGER BUTTON */}
+                                                        <button 
+                                                            onClick={() => {
+                                                                setEditingGame(game);
+                                                                setEditStatsTemp(JSON.parse(JSON.stringify(game.playerStats)));
+                                                                setExpandedEditPlayerId(null);
+                                                            }}
+                                                            className="px-2.5 py-1 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 text-orange-400 font-bold text-xs rounded-lg cursor-pointer transition-colors"
+                                                        >
+                                                            Edit Box Score
+                                                        </button>
+                                                    </div>
                                                 </div>
                                                 
                                                 {/* TEAM A STATLINE TABLE */}
@@ -1273,6 +1550,192 @@
                         <p>© 2026 WKND League Stats. Securely saving records in real-time Cloud Sync.</p>
                     </footer>
 
+                    {/* HISTORIC BOX SCORE EDITOR MODAL */}
+                    {editingGame && (
+                        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-start sm:items-center justify-center p-4">
+                            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-3xl shadow-2xl relative my-auto flex flex-col max-h-[90vh]">
+                                <div className="border-b border-slate-800 pb-3 mb-4 flex-shrink-0">
+                                    <h3 className="text-lg font-black text-white">Edit Game Box Score</h3>
+                                    <p className="text-xs text-slate-400">Match Date: {editingGame.date} • ID: {editingGame.id}</p>
+                                </div>
+
+                                <form onSubmit={handleSaveHistoricEdit} className="space-y-4 overflow-y-auto flex-1 pr-1">
+                                    <div className="space-y-6">
+                                        {/* Home Team Section */}
+                                        <div>
+                                            <h4 className="text-xs font-black text-emerald-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                                                <span className="w-2 h-2 rounded-full bg-emerald-400" /> {editingGame.teamAName} (Home)
+                                            </h4>
+                                            <div className="space-y-2">
+                                                {(teams.find(t => t.id === editingGame.teamAId)?.players || [])
+                                                    .map(player => {
+                                                        const isExpanded = expandedEditPlayerId === player.id;
+                                                        const pstats = editStatsTemp[player.id] || { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 };
+                                                        return (
+                                                            <div key={player.id} className="bg-slate-950/60 border border-slate-850 rounded-xl overflow-hidden">
+                                                                <div 
+                                                                    onClick={() => setExpandedEditPlayerId(isExpanded ? null : player.id)}
+                                                                    className="p-3 flex items-center justify-between cursor-pointer hover:bg-slate-900/40 select-none"
+                                                                >
+                                                                    <span className="text-xs font-extrabold text-white">
+                                                                        <span className="font-mono text-slate-500 mr-1.5">#{player.number}</span> {player.name}
+                                                                    </span>
+                                                                    <span className="text-[10px] text-slate-400 font-mono bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                                                                        PTS: {pstats.pts || 0} • REB: {pstats.reb || 0} • AST: {pstats.ast || 0}
+                                                                    </span>
+                                                                </div>
+                                                                {isExpanded && (
+                                                                    <div className="p-3 bg-slate-950 border-t border-slate-850/60 grid grid-cols-3 sm:grid-cols-5 gap-2.5 text-xs font-semibold">
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">PTS</label>
+                                                                            <input type="number" min="0" value={pstats.pts || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, pts: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">REB</label>
+                                                                            <input type="number" min="0" value={pstats.reb || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, reb: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">AST</label>
+                                                                            <input type="number" min="0" value={pstats.ast || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, ast: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">STL</label>
+                                                                            <input type="number" min="0" value={pstats.stl || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, stl: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">BLK</label>
+                                                                            <input type="number" min="0" value={pstats.blk || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, blk: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">TO</label>
+                                                                            <input type="number" min="0" value={pstats.to || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, to: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">PF</label>
+                                                                            <input type="number" min="0" max="5" value={pstats.pf || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, pf: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">2PM</label>
+                                                                            <input type="number" min="0" value={pstats.fg2m || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, fg2m: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">3PM</label>
+                                                                            <input type="number" min="0" value={pstats.fg3m || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, fg3m: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">2P Miss</label>
+                                                                            <input type="number" min="0" value={pstats.fg2m_miss || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, fg2m_miss: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">3P Miss</label>
+                                                                            <input type="number" min="0" value={pstats.fg3m_miss || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, fg3m_miss: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                            </div>
+                        );
+                    })}
+                                        </div>
+
+                                        {/* Away Team Section */}
+                                        <div>
+                                            <h4 className="text-xs font-black text-red-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                                                <span className="w-2 h-2 rounded-full bg-red-400" /> {editingGame.teamBName} (Away)
+                                            </h4>
+                                            <div className="space-y-2">
+                                                {(teams.find(t => t.id === editingGame.teamBId)?.players || [])
+                                                    .map(player => {
+                                                        const isExpanded = expandedEditPlayerId === player.id;
+                                                        const pstats = editStatsTemp[player.id] || { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 };
+                                                        return (
+                                                            <div key={player.id} className="bg-slate-950/60 border border-slate-850 rounded-xl overflow-hidden">
+                                                                <div 
+                                                                    onClick={() => setExpandedEditPlayerId(isExpanded ? null : player.id)}
+                                                                    className="p-3 flex items-center justify-between cursor-pointer hover:bg-slate-900/40 select-none"
+                                                                >
+                                                                    <span className="text-xs font-extrabold text-white">
+                                                                        <span className="font-mono text-slate-500 mr-1.5">#{player.number}</span> {player.name}
+                                                                    </span>
+                                                                    <span className="text-[10px] text-slate-400 font-mono bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                                                                        PTS: {pstats.pts || 0} • REB: {pstats.reb || 0} • AST: {pstats.ast || 0}
+                                                                    </span>
+                                                                </div>
+                                                                {isExpanded && (
+                                                                    <div className="p-3 bg-slate-950 border-t border-slate-850/60 grid grid-cols-3 sm:grid-cols-5 gap-2.5 text-xs font-semibold">
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">PTS</label>
+                                                                            <input type="number" min="0" value={pstats.pts || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, pts: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">REB</label>
+                                                                            <input type="number" min="0" value={pstats.reb || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, reb: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">AST</label>
+                                                                            <input type="number" min="0" value={pstats.ast || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, ast: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">STL</label>
+                                                                            <input type="number" min="0" value={pstats.stl || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, stl: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">BLK</label>
+                                                                            <input type="number" min="0" value={pstats.blk || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, blk: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">TO</label>
+                                                                            <input type="number" min="0" value={pstats.to || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, to: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">PF</label>
+                                                                            <input type="number" min="0" max="5" value={pstats.pf || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, pf: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">2PM</label>
+                                                                            <input type="number" min="0" value={pstats.fg2m || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, fg2m: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">3PM</label>
+                                                                            <input type="number" min="0" value={pstats.fg3m || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, fg3m: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">2P Miss</label>
+                                                                            <input type="number" min="0" value={pstats.fg2m_miss || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, fg2m_miss: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-[10px] text-slate-400 mb-1">3P Miss</label>
+                                                                            <input type="number" min="0" value={pstats.fg3m_miss || 0} onChange={(e) => setEditStatsTemp({ ...editStatsTemp, [player.id]: { ...pstats, fg3m_miss: parseInt(e.target.value, 10) || 0 } })} className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-white font-mono" />
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Action Buttons */}
+                                    <div className="flex gap-2.5 pt-4 border-t border-slate-800 flex-shrink-0">
+                                        <button 
+                                            type="button" 
+                                            onClick={() => { setEditingGame(null); setExpandedEditPlayerId(null); }}
+                                            className="flex-1 py-2.5 bg-slate-950 text-slate-400 hover:text-white rounded-xl text-xs font-bold border border-slate-850 cursor-pointer"
+                                        >
+                                            Cancel Edits
+                                        </button>
+                                        <button 
+                                            type="submit" 
+                                            className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-lg cursor-pointer"
+                                        >
+                                            Save Changes
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
                     {/* MODAL WRAPPERS */}
                     {showNewTeamModal && (
                         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
@@ -1311,7 +1774,7 @@
 
                     {showSubstitutionModal && subTargetPlayer && (
                         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-                            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl w-full max-w-sm relative">
+                            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl w-full max-w-sm relative font-sans">
                                 <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-1"><Icons.ArrowRightLeft /> Substitute Athlete</h3>
                                 <div className="space-y-2 max-h-[220px] overflow-y-auto">
                                     {(() => {
@@ -1320,14 +1783,14 @@
                                         return benchIds.map(benchId => {
                                             const p = teamObj?.players.find(x => x.id === benchId);
                                             return p ? (
-                                                <button key={benchId} onClick={() => executeSubstitution(subTargetPlayer.id, benchId, subTargetPlayer.team === 'A')} className="w-full text-xs flex justify-between p-2.5 bg-slate-950 border border-slate-850 rounded-lg text-slate-200">
+                                                <button key={benchId} onClick={() => executeSubstitution(subTargetPlayer.id, benchId, subTargetPlayer.team === 'A')} className="w-full text-xs flex justify-between p-2.5 bg-slate-950 border border-slate-850 rounded-lg text-slate-200 cursor-pointer">
                                                     <span>#{p.number} {p.name}</span> <span className="text-emerald-400 font-bold">Sub In</span>
                                                 </button>
                                             ) : null;
                                         });
                                     })()}
                                 </div>
-                                <button onClick={() => setShowSubstitutionModal(false)} className="w-full mt-3 py-2 bg-slate-950 text-slate-400 border border-slate-855 text-xs rounded-xl">Cancel</button>
+                                <button onClick={() => setShowSubstitutionModal(false)} className="w-full mt-3 py-2 bg-slate-950 text-slate-400 border border-slate-855 text-xs rounded-xl cursor-pointer">Cancel</button>
                             </div>
                         </div>
                     )}
@@ -1359,7 +1822,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <button onClick={() => { setShowLoggingModal(false); setActiveAction(null); setCorrectionMode(false); }} className="w-full mt-4 py-2 bg-slate-950 text-slate-400 text-xs rounded-xl font-bold">Cancel Action</button>
+                                <button onClick={() => { setShowLoggingModal(false); setActiveAction(null); setCorrectionMode(false); }} className="w-full mt-4 py-2 bg-slate-950 text-slate-400 text-xs rounded-xl font-bold cursor-pointer">Cancel Action</button>
                             </div>
                         </div>
                     )}
@@ -1400,8 +1863,8 @@
                                 <h3 className="text-md font-extrabold text-white mb-2">{confirmDialog.title}</h3>
                                 <p className="text-xs text-slate-400 mb-4">{confirmDialog.text}</p>
                                 <div className="flex gap-3 text-xs font-bold">
-                                    <button onClick={() => setConfirmDialog(null)} className="flex-1 py-2 bg-slate-950 text-slate-400 rounded-xl border border-slate-850">Cancel</button>
-                                    <button onClick={confirmDialog.onConfirm} className="flex-1 py-2 bg-red-600 text-white rounded-xl">Confirm</button>
+                                    <button onClick={() => setConfirmDialog(null)} className="flex-1 py-2 bg-slate-950 text-slate-400 rounded-xl border border-slate-850 cursor-pointer">Cancel</button>
+                                    <button onClick={confirmDialog.onConfirm} className="flex-1 py-2 bg-red-600 text-white rounded-xl cursor-pointer">Confirm</button>
                                 </div>
                             </div>
                         </div>
