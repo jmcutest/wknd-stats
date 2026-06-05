@@ -92,7 +92,7 @@
             Trash: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>,
             UserPlus: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>,
             FolderPlus: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>,
-            ArrowRightLeft: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m16 3 4 4-4 4M20 7H4M8 21l-4-4 4-4M4 17h16"/></svg>,
+            ArrowRightLeft: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m16 3 4 4-4 4M20 7H4M8 21l-4-4 4-4M4 17h16"/></svg>,
             Zap: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
             Undo: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
         };
@@ -246,9 +246,10 @@
 
             const [confirmDialog, setConfirmDialog] = useState(null);
 
-            const primaryActions = STAT_ACTIONS.filter(act => ['pts_2', 'pts_3', 'fg2m_miss', 'fg3m_miss', 'ft_miss'].includes(act.id));
+            // "FT Miss" has been successfully moved to Tertiary Actions (Tier 3)
+            const primaryActions = STAT_ACTIONS.filter(act => ['pts_2', 'pts_3', 'fg2m_miss', 'fg3m_miss'].includes(act.id));
             const secondaryActions = STAT_ACTIONS.filter(act => ['reb', 'ast'].includes(act.id));
-            const tertiaryActions = STAT_ACTIONS.filter(act => ['pts_1', 'stl', 'blk', 'to', 'pf'].includes(act.id));
+            const tertiaryActions = STAT_ACTIONS.filter(act => ['pts_1', 'stl', 'blk', 'to', 'pf', 'ft_miss'].includes(act.id));
 
             /* Managing body scrolling locks */
             useEffect(() => {
@@ -538,6 +539,7 @@
                 };
             };
 
+            /* Overhauled: Fully continuous merge match logic matching by Name for multi-device operations */
             const handleMergeData = (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
@@ -546,73 +548,142 @@
                 fileReader.onload = (event) => {
                     try {
                         const parsedData = JSON.parse(event.target.result);
-                        if (!parsedData || !Array.isArray(parsedData.teams) || !Array.isArray(parsedData.games)) return;
-
-                        const newGames = parsedData.games.filter(ig => !games.some(lg => lg.id === ig.id));
-                        if (newGames.length === 0) {
-                            showToast("No new game records found to merge.", "info");
+                        if (!parsedData || !Array.isArray(parsedData.teams) || !Array.isArray(parsedData.games)) {
+                            showToast("Invalid backup file format for merging.", "error");
                             return;
                         }
 
-                        let mergedTeams = JSON.parse(JSON.stringify(teams));
+                        // Copy local structures to safely mutate
+                        let localTeamsCopy = JSON.parse(JSON.stringify(teams));
+                        let localGamesCopy = JSON.parse(JSON.stringify(games));
 
-                        parsedData.teams.forEach(importedTeam => {
-                            if (!mergedTeams.some(localTeam => localTeam.id === importedTeam.id)) {
-                                mergedTeams.push(importedTeam);
+                        // Find games that do not exist locally by their ID
+                        const newGamesToMerge = parsedData.games.filter(ig => !localGamesCopy.some(lg => lg.id === ig.id));
+                        if (newGamesToMerge.length === 0) {
+                            showToast("No new game records found to merge. All imported matches already exist.", "info");
+                            return;
+                        }
+
+                        let mergeCount = 0;
+
+                        newGamesToMerge.forEach(game => {
+                            // 1. Resolve Team A by name
+                            let localTeamA = localTeamsCopy.find(t => t.name.toLowerCase().trim() === game.teamAName.toLowerCase().trim());
+                            if (!localTeamA) {
+                                const impTeam = parsedData.teams.find(t => t.id === game.teamAId) || { color: "#e2e8f0" };
+                                localTeamA = {
+                                    id: `team_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+                                    name: game.teamAName,
+                                    color: impTeam.color,
+                                    players: []
+                                };
+                                localTeamsCopy.push(localTeamA);
                             }
-                        });
 
-                        parsedData.teams.forEach(importedTeam => {
-                            const localTeam = mergedTeams.find(t => t.id === importedTeam.id);
-                            if (localTeam) {
-                                importedTeam.players.forEach(importedPlayer => {
-                                    if (!localTeam.players.some(p => p.id === importedPlayer.id)) {
-                                        const newPlayerObj = {
-                                            ...importedPlayer,
-                                            gamesPlayed: 0,
-                                            totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0, ftm: 0, ft_miss: 0 }
-                                        };
-                                        localTeam.players.push(newPlayerObj);
-                                    }
-                                });
+                            // 2. Resolve Team B by name
+                            let localTeamB = localTeamsCopy.find(t => t.name.toLowerCase().trim() === game.teamBName.toLowerCase().trim());
+                            if (!localTeamB) {
+                                const impTeam = parsedData.teams.find(t => t.id === game.teamBId) || { color: "#3b82f6" };
+                                localTeamB = {
+                                    id: `team_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+                                    name: game.teamBName,
+                                    color: impTeam.color,
+                                    players: []
+                                };
+                                localTeamsCopy.push(localTeamB);
                             }
-                        });
 
-                        newGames.forEach(game => {
-                            Object.entries(game.playerStats).forEach(([playerId, stats]) => {
-                                let foundPlayer = null;
-                                for (let t of mergedTeams) {
-                                    foundPlayer = t.players.find(p => p.id === playerId);
-                                    if (foundPlayer) break;
+                            const mappedPlayerStats = {};
+
+                            // 3. Process player statistics from the imported game, mapping them to local IDs based on names
+                            Object.entries(game.playerStats).forEach(([impPlayerId, stats]) => {
+                                // Find player name & number from imported file roster
+                                let impPlayerObj = null;
+                                for (let t of parsedData.teams) {
+                                    impPlayerObj = t.players.find(p => p.id === impPlayerId);
+                                    if (impPlayerObj) break;
                                 }
 
-                                if (foundPlayer) {
-                                    foundPlayer.gamesPlayed = (foundPlayer.gamesPlayed || 0) + 1;
-                                    foundPlayer.totalStats.pts = (foundPlayer.totalStats.pts || 0) + (stats.pts || 0);
-                                    foundPlayer.totalStats.ast = (foundPlayer.totalStats.ast || 0) + (stats.ast || 0);
-                                    foundPlayer.totalStats.reb = (foundPlayer.totalStats.reb || 0) + (stats.reb || 0);
-                                    foundPlayer.totalStats.stl = (foundPlayer.totalStats.stl || 0) + (stats.stl || 0);
-                                    foundPlayer.totalStats.blk = (foundPlayer.totalStats.blk || 0) + (stats.blk || 0);
-                                    foundPlayer.totalStats.to = (foundPlayer.totalStats.to || 0) + (stats.to || 0);
-                                    foundPlayer.totalStats.pf = (foundPlayer.totalStats.pf || 0) + (stats.pf || 0);
-                                    foundPlayer.totalStats.fg2m = (foundPlayer.totalStats.fg2m || 0) + (stats.fg2m || 0);
-                                    foundPlayer.totalStats.fg3m = (foundPlayer.totalStats.fg3m || 0) + (stats.fg3m || 0);
-                                    foundPlayer.totalStats.fg2m_miss = (foundPlayer.totalStats.fg2m_miss || 0) + (stats.fg2m_miss || 0);
-                                    foundPlayer.totalStats.fg3m_miss = (foundPlayer.totalStats.fg3m_miss || 0) + (stats.fg3m_miss || 0);
-                                    foundPlayer.totalStats.ftm = (foundPlayer.totalStats.ftm || 0) + (stats.ftm || 0);
-                                    foundPlayer.totalStats.ft_miss = (foundPlayer.totalStats.ft_miss || 0) + (stats.ft_miss || 0);
+                                if (!impPlayerObj) {
+                                    // Fallback placeholder
+                                    impPlayerObj = { name: `Unknown Player (${impPlayerId})`, number: "0" };
+                                }
+
+                                // Match the team context
+                                const isTeamA = parsedData.teams.find(t => t.id === game.teamAId)?.players.some(p => p.id === impPlayerId);
+                                const targetLocalTeam = isTeamA ? localTeamA : localTeamB;
+
+                                // Match player locally by Name (Case-insensitive)
+                                let localPlayer = targetLocalTeam.players.find(p => p.name.toLowerCase().trim() === impPlayerObj.name.toLowerCase().trim());
+                                
+                                if (!localPlayer) {
+                                    // If no player matches, register a new one to keep statistics running continuously
+                                    localPlayer = {
+                                        id: `player_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+                                        name: impPlayerObj.name,
+                                        number: impPlayerObj.number,
+                                        gamesPlayed: 0,
+                                        totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0, ftm: 0, ft_miss: 0 }
+                                    };
+                                    targetLocalTeam.players.push(localPlayer);
+                                }
+
+                                // Accumulate the game stats into the local player's career totals
+                                localPlayer.gamesPlayed = (localPlayer.gamesPlayed || 0) + 1;
+                                localPlayer.totalStats.pts = (localPlayer.totalStats.pts || 0) + (stats.pts || 0);
+                                localPlayer.totalStats.ast = (localPlayer.totalStats.ast || 0) + (stats.ast || 0);
+                                localPlayer.totalStats.reb = (localPlayer.totalStats.reb || 0) + (stats.reb || 0);
+                                localPlayer.totalStats.stl = (localPlayer.totalStats.stl || 0) + (stats.stl || 0);
+                                localPlayer.totalStats.blk = (localPlayer.totalStats.blk || 0) + (stats.blk || 0);
+                                localPlayer.totalStats.to = (localPlayer.totalStats.to || 0) + (stats.to || 0);
+                                localPlayer.totalStats.pf = (localPlayer.totalStats.pf || 0) + (stats.pf || 0);
+                                localPlayer.totalStats.fg2m = (localPlayer.totalStats.fg2m || 0) + (stats.fg2m || 0);
+                                localPlayer.totalStats.fg3m = (localPlayer.totalStats.fg3m || 0) + (stats.fg3m || 0);
+                                localPlayer.totalStats.fg2m_miss = (localPlayer.totalStats.fg2m_miss || 0) + (stats.fg2m_miss || 0);
+                                localPlayer.totalStats.fg3m_miss = (localPlayer.totalStats.fg3m_miss || 0) + (stats.fg3m_miss || 0);
+                                localPlayer.totalStats.ftm = (localPlayer.totalStats.ftm || 0) + (stats.ftm || 0);
+                                localPlayer.totalStats.ft_miss = (localPlayer.totalStats.ft_miss || 0) + (stats.ft_miss || 0);
+
+                                // Map stats using local ID
+                                mappedPlayerStats[localPlayer.id] = stats;
+                            });
+
+                            // Reconstruct the game object with normalized local IDs
+                            const mappedGame = {
+                                ...game,
+                                teamAId: localTeamA.id,
+                                teamBId: localTeamB.id,
+                                playerStats: mappedPlayerStats
+                            };
+
+                            localGamesCopy.push(mappedGame);
+                            mergeCount++;
+                        });
+
+                        // Sort games by newest first
+                        localGamesCopy.sort((a, b) => b.id.localeCompare(a.id));
+
+                        // Set state and sync
+                        saveTeamState(localTeamsCopy);
+                        setGames(localGamesCopy);
+
+                        if (!window.firebaseDb) {
+                            localStorage.setItem('stat_games', JSON.stringify(localGamesCopy));
+                        } else if (user && user.uid !== "offline") {
+                            // Sync up the newly mapped game documents to Firestore
+                            const { doc, setDoc } = window.firebaseUtils;
+                            const appId = typeof __app_id !== 'undefined' ? __app_id : 'wknd-league-stats';
+                            newGamesToMerge.forEach(async (g) => {
+                                const localGameDoc = localGamesCopy.find(lg => lg.id === g.id);
+                                if (localGameDoc) {
+                                    await setDoc(doc(window.firebaseDb, 'artifacts', appId, 'public', 'data', 'games', localGameDoc.id), localGameDoc);
                                 }
                             });
-                        });
-
-                        const mergedGames = [...newGames, ...games].sort((a, b) => b.id.localeCompare(a.id));
-                        saveTeamState(mergedTeams);
-                        setGames(mergedGames);
-                        if (!window.firebaseDb) {
-                            localStorage.setItem('stat_games', JSON.stringify(mergedGames));
                         }
-                        showToast(`Merged ${newGames.length} new game(s)!`, "success");
+
+                        showToast(`Successfully merged ${mergeCount} match(es)! Career stats matched continuously by Name.`, "success");
                     } catch (err) {
+                        console.error(err);
                         showToast("Failed to complete data merge.", "error");
                     }
                 };
@@ -1123,7 +1194,7 @@
                     <div 
                         key={player.id} 
                         onClick={() => hasActionArmed && handlePlayerClick(player.id, isTeamA)}
-                        className={`bg-slate-950/90 border p-3.5 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${
+                        className={`bg-slate-955/90 border p-3.5 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 transition-all duration-250 ${
                             hasActionArmed 
                                 ? 'armed-target hover:bg-slate-900 border-emerald-500/50' 
                                 : 'border-slate-800 hover:border-slate-700/60'
@@ -1242,10 +1313,10 @@
                                                 </div>
                                             </div>
 
-                                            {/* TIER 1: GIANT PRIMARY KEYS (Shooting metrics + FT Miss) */}
+                                            {/* TIER 1: GIANT PRIMARY KEYS (Shooting metrics) */}
                                             <div>
                                                 <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest block mb-2">🏀 Tier 1: Primary Shooting Keys & Attempts</span>
-                                                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                                     {primaryActions.map(act => (
                                                         <button 
                                                             key={act.id} 
@@ -1276,10 +1347,10 @@
                                                     </div>
                                                 </div>
 
-                                                {/* TIER 3: COMPACT TERTIARY KEYS (Others) */}
+                                                {/* TIER 3: COMPACT TERTIARY KEYS ("FT Miss" has been successfully moved here!) */}
                                                 <div className="lg:col-span-7">
                                                     <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest block mb-2">⚙️ Tier 3: Auxiliary Game Events</span>
-                                                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                                                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                                                         {tertiaryActions.map(act => (
                                                             <button 
                                                                 key={act.id} 
@@ -1295,7 +1366,7 @@
                                         </div>
 
                                         {/* Mobile Tab Toggles */}
-                                        <div className="col-span-12 md:hidden flex bg-slate-950 p-1 rounded-xl border border-slate-855 gap-1">
+                                        <div className="col-span-12 md:hidden flex bg-slate-955 p-1 rounded-xl border border-slate-855 gap-1">
                                             <button onClick={() => setActiveMobileConsoleTab('home')} className={`flex-1 py-1.5 text-center text-xs font-bold rounded-lg ${activeMobileConsoleTab === 'home' ? 'bg-slate-800 text-white' : 'text-slate-400'}`}>🏠 Home lineup</button>
                                             <button onClick={() => setActiveMobileConsoleTab('away')} className={`flex-1 py-1.5 text-center text-xs font-bold rounded-lg ${activeMobileConsoleTab === 'away' ? 'bg-slate-800 text-white' : 'text-slate-400'}`}>🚌 Away lineup</button>
                                         </div>
@@ -1476,7 +1547,7 @@
                         {/* TAB 2: ROSTER LISTS (CLEAN DESIGN - ONLY CSV IMPORTER REMAINS) */}
                         {activeTab === 'teams' && (
                             <div className="space-y-4">
-                                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-slate-950 p-4 rounded-xl border border-slate-850">
+                                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-slate-955 p-4 rounded-xl border border-slate-850">
                                     <div>
                                         <h3 className="text-base font-bold text-white font-sans">Division Rosters</h3>
                                     </div>
@@ -2036,7 +2107,7 @@
                                     <input type="text" value={newTeamName} onChange={(e) => setNewTeamName(e.target.value)} placeholder="Team Name" className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-white" required />
                                     <input type="color" value={newTeamColor} onChange={(e) => setNewTeamColor(e.target.value)} className="w-8 h-8 bg-transparent border-0 cursor-pointer block" />
                                     <div className="flex gap-2 font-bold pt-1">
-                                        <button type="button" onClick={() => setShowNewTeamModal(false)} className="flex-1 py-2 bg-slate-950 text-slate-400 rounded-xl border border-slate-855">Cancel</button>
+                                        <button type="button" onClick={() => setShowNewTeamModal(false)} className="flex-1 py-2 bg-slate-955 text-slate-400 rounded-xl border border-slate-855">Cancel</button>
                                         <button type="submit" className="flex-1 py-2 bg-emerald-600 text-white rounded-xl">Create</button>
                                     </div>
                                 </form>
@@ -2055,7 +2126,7 @@
                                     <input type="text" value={newPlayerName} onChange={(e) => setNewPlayerName(e.target.value)} placeholder="Full Name" className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-white" required />
                                     <input type="text" value={newPlayerNumber} onChange={(e) => setNewPlayerNumber(e.target.value)} placeholder="Jersey No." className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-white font-mono" required />
                                     <div className="flex gap-2 font-bold pt-1">
-                                        <button type="button" onClick={() => setShowNewPlayerModal(false)} className="flex-1 py-2 bg-slate-950 text-slate-400 rounded-xl border border-slate-850">Cancel</button>
+                                        <button type="button" onClick={() => setShowNewPlayerModal(false)} className="flex-1 py-2 bg-slate-950 text-slate-400 rounded-xl border border-slate-855">Cancel</button>
                                         <button type="submit" className="flex-1 py-2 bg-emerald-600 text-white rounded-xl">Register</button>
                                     </div>
                                 </form>
@@ -2122,7 +2193,7 @@
                     {foulAlert && (
                         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
                             <div className={`border p-6 rounded-2xl w-full max-w-sm shadow-2xl relative text-center my-auto ${
-                                foulAlert.type === 'disqualified' ? 'bg-red-950/90 border-red-500' : 'bg-amber-955 border-amber-700'
+                                foulAlert.type === 'disqualified' ? 'bg-red-955/90 border-red-500' : 'bg-amber-955 border-amber-700'
                             }`}>
                                 <div className="text-4xl mb-3">
                                     {foulAlert.type === 'disqualified' ? '🚨' : '⚠️'}
