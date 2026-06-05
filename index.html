@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -102,41 +101,98 @@
 
         const initialTeams = [
             {
-                id: "team_1",
-                name: "Apex Thunder",
-                color: "#10b981",
+                id: "team_white",
+                name: "WHITE",
+                color: "#e2e8f0",
                 players: [
-                    { id: "p1", name: "Marcus Thompson", number: "23", gamesPlayed: 3, totalStats: { pts: 54, ast: 12, reb: 24, stl: 6, blk: 3, to: 4, pf: 6, fg2m: 18, fg3m: 5, fg2m_miss: 10, fg3m_miss: 6 } },
-                    { id: "p2", name: "Darnell Carter", number: "3", gamesPlayed: 3, totalStats: { pts: 42, ast: 22, reb: 11, stl: 9, blk: 1, to: 8, pf: 4, fg2m: 12, fg3m: 6, fg2m_miss: 11, fg3m_miss: 12 } },
-                    { id: "p3", name: "Jared Vance", number: "11", gamesPlayed: 3, totalStats: { pts: 28, ast: 8, reb: 32, stl: 2, blk: 8, to: 3, pf: 9, fg2m: 11, fg3m: 2, fg2m_miss: 9, fg3m_miss: 4 } }
+                    { id: "w0", name: "TORRES, Lance", number: "0", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "w1", name: "TY, Paolo", number: "1", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "w5", name: "MANALO, Steven", number: "5", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "w6", name: "MORA, Jojo", number: "6", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "w8", name: "SABADO, Rolan Jr.", number: "8", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "w9", name: "DELA VICTORIA, Keeu", number: "9", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "w10", name: "MARIANO, George", number: "10", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "w13", name: "ANTONIO, Aj", number: "13", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "w26", name: "TRAVINIO, Pietro", number: "26", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "w27", name: "SAUZ, Aaron", number: "27", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "w28", name: "ANGELES, Jm", number: "28", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "w5_jison", name: "JISON, Jake", number: "5", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } }
                 ]
             },
             {
-                id: "team_2",
-                name: "Shadow Elite",
-                color: "#ef4444",
+                id: "team_blue",
+                name: "BLUE",
+                color: "#3b82f6",
                 players: [
-                    { id: "p7", name: "Chris Evans", number: "10", gamesPlayed: 3, totalStats: { pts: 48, ast: 9, reb: 15, stl: 5, blk: 2, to: 3, pf: 5, fg2m: 15, fg3m: 6, fg2m_miss: 12, fg3m_miss: 9 } },
-                    { id: "p8", name: "Devon Brooks", number: "1", gamesPlayed: 3, totalStats: { pts: 36, ast: 18, reb: 12, stl: 7, blk: 0, to: 6, pf: 4, fg2m: 9, fg3m: 6, fg2m_miss: 8, fg3m_miss: 14 } },
-                    { id: "p9", name: "Malik Jenkins", number: "33", gamesPlayed: 3, totalStats: { pts: 30, ast: 4, reb: 35, stl: 11, blk: 11, to: 5, pf: 10, fg2m: 12, fg3m: 2, fg2m_miss: 15, fg3m_miss: 5 } }
+                    { id: "b0", name: "JONSAY, Luke", number: "0", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "b1", name: "ORBETA, Carlo", number: "1", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "b4", name: "REYES, Ems", number: "4", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "b5", name: "YANSON, Daryl", number: "5", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "b7", name: "GARGANTA, Mej", number: "7", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "b9", name: "GONZALES, Jec", number: "9", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "b14", name: "SALENGA, Vin", number: "14", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "b17", name: "SALAZAR, Jonathan", number: "17", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "b20", name: "UMALI, Richard", number: "20", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "b23", name: "CARDOZO, Jone", number: "23", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "b24", name: "URSUA, Kalvin", number: "24", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "b25", name: "BRIONES, Jeryco", number: "25", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } }
+                ]
+            },
+            {
+                id: "team_black",
+                name: "BLACK",
+                color: "#475569",
+                players: [
+                    { id: "bk1", name: "CONTIGNO, Martin", number: "1", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "bk3", name: "NUÑEZ, Julio", number: "3", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "bk4", name: "OMEGA, Minik", number: "4", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "bk5", name: "ENCINARES, Kix", number: "5", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "bk12", name: "BUISING, Godric", number: "12", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "bk15", name: "SAEZ, Louwie", number: "15", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "bk17", name: "SANTOS, Resty", number: "17", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "bk18", name: "SARMIENTO, Paul", number: "18", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "bk20", name: "WICO, Ed", number: "20", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "bk28", name: "MANESE, La", number: "28", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "bk77", name: "SALTA, Gilbert", number: "77", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "bk88", name: "ABENES, Lawrence", number: "88", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } }
+                ]
+            },
+            {
+                id: "team_maroon",
+                name: "MAROON",
+                color: "#991b1b",
+                players: [
+                    { id: "m2", name: "BANLAO, Christian", number: "2", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "m3", name: "DEL ROSARIO, Moe", number: "3", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "m12", name: "MONZON, Ryan", number: "12", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "m13", name: "GASPAR, Carl", number: "13", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "m15", name: "ARGANDA, Leo", number: "15", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "m16", name: "SALIVA, Chucky", number: "16", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "m19", name: "ALVIO, Justine", number: "19", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "m21", name: "PANGILINAN, Michael", number: "21", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "m28", name: "REYNALDO, Mark", number: "28", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "m29", name: "MAYRINA, Michael", number: "29", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "m31", name: "ULEP, Carlo", number: "31", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "m41", name: "CUARDO, Joel", number: "41", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } },
+                    { id: "m71", name: "SAMBAJON, Sam", number: "71", gamesPlayed: 0, totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 } }
                 ]
             }
         ];
 
         const STAT_ACTIONS = [
-            { id: 'pts_1', label: '+1 FT', category: 'score', stat: 'pts', val: 1, colorClass: 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500' },
-            { id: 'pts_2', label: '2pt Made', category: 'score', stat: 'pts', val: 2, colorClass: 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500', trackingStat: 'fg2m' },
-            { id: 'pts_3', label: '3pt Made', category: 'score', stat: 'pts', val: 3, colorClass: 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500', trackingStat: 'fg3m' },
+            { id: 'pts_1', label: '+1 FT', category: 'score', stat: 'pts', val: 1, colorClass: 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500 shadow-sm' },
+            { id: 'pts_2', label: '2pt Made', category: 'score', stat: 'pts', val: 2, colorClass: 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500 shadow-md', trackingStat: 'fg2m' },
+            { id: 'pts_3', label: '3pt Made', category: 'score', stat: 'pts', val: 3, colorClass: 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500 shadow-md', trackingStat: 'fg3m' },
             
-            { id: 'ast', label: '+1 AST', category: 'play', stat: 'ast', val: 1, colorClass: 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-600' },
-            { id: 'reb', label: '+1 REB', category: 'play', stat: 'reb', val: 1, colorClass: 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-600' },
-            { id: 'stl', label: '+1 STL', category: 'play', stat: 'stl', val: 1, colorClass: 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-600' },
-            { id: 'blk', label: '+1 BLK', category: 'play', stat: 'blk', val: 1, colorClass: 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-600' },
+            { id: 'ast', label: '+1 AST', category: 'play', stat: 'ast', val: 1, colorClass: 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-600 shadow-sm' },
+            { id: 'reb', label: '+1 REB', category: 'play', stat: 'reb', val: 1, colorClass: 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-600 shadow-sm' },
+            { id: 'stl', label: '+1 STL', category: 'play', stat: 'stl', val: 1, colorClass: 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-600 shadow-sm' },
+            { id: 'blk', label: '+1 BLK', category: 'play', stat: 'blk', val: 1, colorClass: 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-600 shadow-sm' },
             
-            { id: 'fg2m_miss', label: '2pt Miss', category: 'miss', stat: 'fg2m_miss', val: 1, colorClass: 'bg-red-600 hover:bg-red-500 text-white border-red-500' },
-            { id: 'fg3m_miss', label: '3pt Miss', category: 'miss', stat: 'fg3m_miss', val: 1, colorClass: 'bg-red-600 hover:bg-red-500 text-white border-red-500' },
-            { id: 'to', label: '+1 TO', category: 'deficit', stat: 'to', val: 1, colorClass: 'bg-red-700 hover:bg-red-600 text-white border-red-650' },
-            { id: 'pf', label: '+1 FOUL', category: 'deficit', stat: 'pf', val: 1, colorClass: 'bg-red-800 hover:bg-red-700 text-white border-red-700' }
+            { id: 'fg2m_miss', label: '2pt Miss', category: 'miss', stat: 'fg2m_miss', val: 1, colorClass: 'bg-red-600 hover:bg-red-500 text-white border-red-500 shadow-md' },
+            { id: 'fg3m_miss', label: '3pt Miss', category: 'miss', stat: 'fg3m_miss', val: 1, colorClass: 'bg-red-600 hover:bg-red-500 text-white border-red-500 shadow-md' },
+            { id: 'to', label: '+1 TO', category: 'deficit', stat: 'to', val: 1, colorClass: 'bg-red-700 hover:bg-red-600 text-white border-red-600 shadow-sm' },
+            { id: 'pf', label: '+1 FOUL', category: 'deficit', stat: 'pf', val: 1, colorClass: 'bg-red-800 hover:bg-red-700 text-white border-red-700 shadow-sm' }
         ];
 
         function App() {
@@ -193,6 +249,7 @@
             const secondaryActions = STAT_ACTIONS.filter(act => ['reb', 'ast'].includes(act.id));
             const tertiaryActions = STAT_ACTIONS.filter(act => ['pts_1', 'stl', 'blk', 'to', 'pf'].includes(act.id));
 
+            /* Managing body scrolling locks */
             useEffect(() => {
                 const isAnyModalOpen = showNewTeamModal || showNewPlayerModal || showSubstitutionModal || showLoggingModal || !!confirmDialog || !!foulAlert;
                 if (isAnyModalOpen) {
@@ -211,6 +268,7 @@
                 };
             }, [showNewTeamModal, showNewPlayerModal, showSubstitutionModal, showLoggingModal, confirmDialog, foulAlert]);
 
+            /* Handling smart CSV rosters parsing */
             const handleImportCSV = (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
@@ -233,7 +291,7 @@
                         const headers = lines[0].map(h => h.toLowerCase().trim().replace(/^["']|["']$/g, ''));
                         const teamIndex = headers.findIndex(h => h.includes('team'));
                         
-                        // FIX: Explicitly exclude columns with the word "team" when searching for the Player's Name
+                        // Explicitly exclude columns with the word "team" when searching for the Player's Name
                         const nameIndex = headers.findIndex(h => 
                             h.includes('player') || 
                             h.includes('athlete') || 
@@ -249,7 +307,7 @@
                         }
 
                         const teamMap = {};
-                        const colors = ["#10b981", "#ef4444", "#3b82f6", "#f59e0b", "#8b5cf6", "#ec4899", "#14b8a6", "#f97316"];
+                        const colors = ["#e2e8f0", "#3b82f6", "#475569", "#991b1b", "#8b5cf6", "#ec4899", "#14b8a6", "#f97316"];
                         let colorIdx = 0;
 
                         for (let i = 1; i < lines.length; i++) {
@@ -293,6 +351,7 @@
                 };
             };
 
+            /* Integrating data syncing networks & local migrations */
             useEffect(() => {
                 const appId = typeof __app_id !== 'undefined' ? __app_id : 'wknd-league-stats';
 
@@ -313,8 +372,11 @@
                         const unsubTeams = onSnapshot(teamsPath, (snapshot) => {
                             const cloudTeams = [];
                             snapshot.forEach(doc => { cloudTeams.push({ id: doc.id, ...doc.data() }); });
-                            if (cloudTeams.length > 0) setTeams(cloudTeams);
-                            else setTeams(initialTeams);
+                            if (cloudTeams.length > 0) {
+                                setTeams(cloudTeams);
+                            } else {
+                                setTeams(initialTeams);
+                            }
                         });
 
                         const gamesPath = collection(window.firebaseDb, 'artifacts', appId, 'public', 'data', 'games');
@@ -330,7 +392,14 @@
                 } else {
                     const savedTeams = localStorage.getItem('stat_teams');
                     const savedGames = localStorage.getItem('stat_games');
-                    setTeams(savedTeams ? JSON.parse(savedTeams) : initialTeams);
+                    
+                    let loadedTeams = savedTeams ? JSON.parse(savedTeams) : initialTeams;
+                    // Smart Migration: Force WKND Season 3 defaults if the old placeholders (Apex Thunder) exist
+                    if (loadedTeams.some(t => t.name === "Apex Thunder")) {
+                        loadedTeams = initialTeams;
+                        localStorage.setItem('stat_teams', JSON.stringify(initialTeams));
+                    }
+                    setTeams(loadedTeams);
                     setGames(savedGames ? JSON.parse(savedGames) : []);
                 }
 
@@ -406,6 +475,92 @@
                         await setDoc(doc(window.firebaseDb, 'artifacts', appId, 'public', 'data', 'teams', team.id), team);
                     }
                 }
+            };
+
+            /* HELPER FUNCTIONS FOR FILE DATABASE HANDLERS */
+            const handleExportData = () => {
+                try {
+                    const backupData = { teams, games };
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData));
+                    const downloadAnchor = document.createElement('a');
+                    downloadAnchor.setAttribute("href", dataStr);
+                    downloadAnchor.setAttribute("download", `league_stats_backup_${new Date().toISOString().split('T')[0]}.json`);
+                    document.body.appendChild(downloadAnchor);
+                    downloadAnchor.click();
+                    downloadAnchor.remove();
+                    showToast("Database backup file downloaded!", "success");
+                } catch (e) {
+                    showToast("Failed to export database.", "error");
+                }
+            };
+
+            const handleImportData = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const fileReader = new FileReader();
+                fileReader.readAsText(file, "UTF-8");
+                fileReader.onload = (event) => {
+                    try {
+                        const parsedData = JSON.parse(event.target.result);
+                        if (parsedData && Array.isArray(parsedData.teams)) {
+                            saveTeamState(parsedData.teams);
+                            if (Array.isArray(parsedData.games)) {
+                                setGames(parsedData.games);
+                                if (!window.firebaseDb) {
+                                    localStorage.setItem('stat_games', JSON.stringify(parsedData.games));
+                                }
+                            }
+                            showToast("Database backup successfully restored!", "success");
+                        }
+                    } catch (err) {
+                        showToast("Failed to parse system backup file.", "error");
+                    }
+                };
+            };
+
+            const handleExportRostersOnly = () => {
+                try {
+                    const rostersOnly = teams.map(t => ({
+                        id: t.id,
+                        name: t.name,
+                        color: t.color,
+                        players: t.players.map(p => ({
+                            id: p.id,
+                            name: p.name,
+                            number: p.number,
+                            gamesPlayed: 0,
+                            totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 }
+                        }))
+                    }));
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(rostersOnly));
+                    const downloadAnchor = document.createElement('a');
+                    downloadAnchor.setAttribute("href", dataStr);
+                    downloadAnchor.setAttribute("download", `league_rosters_${new Date().toISOString().split('T')[0]}.json`);
+                    document.body.appendChild(downloadAnchor);
+                    downloadAnchor.click();
+                    downloadAnchor.remove();
+                    showToast("Roster templates exported!", "success");
+                } catch (e) {
+                    showToast("Failed to compile roster export.", "error");
+                }
+            };
+
+            const handleImportRostersOnly = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const fileReader = new FileReader();
+                fileReader.readAsText(file, "UTF-8");
+                fileReader.onload = (event) => {
+                    try {
+                        const parsedRosters = JSON.parse(event.target.result);
+                        if (parsedRosters && Array.isArray(parsedRosters)) {
+                            saveTeamState(parsedRosters);
+                            showToast("Team rosters imported!", "success");
+                        }
+                    } catch (err) {
+                        showToast("Failed to process roster upload.", "error");
+                    }
+                };
             };
 
             const handleStartMatch = (e) => {
@@ -521,6 +676,13 @@
                 setTeamAScore(lastAction.previousTeamAScore);
                 setTeamBScore(lastAction.previousTeamBScore);
                 setGameLog(prev => prev.filter(log => log.text !== lastAction.logText));
+            };
+
+            const triggerSubModal = (playerId, isTeamA) => {
+                const playerObj = teams.flatMap(t => t.players).find(p => p.id === playerId);
+                if (!playerObj) return;
+                setSubTargetPlayer({ id: playerId, name: playerObj.name, number: playerObj.number, team: isTeamA ? 'A' : 'B' });
+                setShowSubstitutionModal(true);
             };
 
             const executeSubstitution = (outId, inId, isTeamA) => {
@@ -653,6 +815,84 @@
                 });
             };
 
+            const handleMergeData = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const fileReader = new FileReader();
+                fileReader.readAsText(file, "UTF-8");
+                fileReader.onload = (event) => {
+                    try {
+                        const parsedData = JSON.parse(event.target.result);
+                        if (!parsedData || !Array.isArray(parsedData.teams) || !Array.isArray(parsedData.games)) return;
+
+                        const newGames = parsedData.games.filter(ig => !games.some(lg => lg.id === ig.id));
+                        if (newGames.length === 0) {
+                            showToast("No new game records found to merge.", "info");
+                            return;
+                        }
+
+                        let mergedTeams = JSON.parse(JSON.stringify(teams));
+
+                        parsedData.teams.forEach(importedTeam => {
+                            if (!mergedTeams.some(localTeam => localTeam.id === importedTeam.id)) {
+                                mergedTeams.push(importedTeam);
+                            }
+                        });
+
+                        parsedData.teams.forEach(importedTeam => {
+                            const localTeam = mergedTeams.find(t => t.id === importedTeam.id);
+                            if (localTeam) {
+                                importedTeam.players.forEach(importedPlayer => {
+                                    if (!localTeam.players.some(p => p.id === importedPlayer.id)) {
+                                        const newPlayerObj = {
+                                            ...importedPlayer,
+                                            gamesPlayed: 0,
+                                            totalStats: { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 }
+                                        };
+                                        localTeam.players.push(newPlayerObj);
+                                    }
+                                });
+                            }
+                        });
+
+                        newGames.forEach(game => {
+                            Object.entries(game.playerStats).forEach(([playerId, stats]) => {
+                                let foundPlayer = null;
+                                for (let t of mergedTeams) {
+                                    foundPlayer = t.players.find(p => p.id === playerId);
+                                    if (foundPlayer) break;
+                                }
+
+                                if (foundPlayer) {
+                                    foundPlayer.gamesPlayed += 1;
+                                    foundPlayer.totalStats.pts += (stats.pts || 0);
+                                    foundPlayer.totalStats.ast += (stats.ast || 0);
+                                    foundPlayer.totalStats.reb += (stats.reb || 0);
+                                    foundPlayer.totalStats.stl += (stats.stl || 0);
+                                    foundPlayer.totalStats.blk += (stats.blk || 0);
+                                    foundPlayer.totalStats.to += (stats.to || 0);
+                                    foundPlayer.totalStats.pf += (stats.pf || 0);
+                                    foundPlayer.totalStats.fg2m = (foundPlayer.totalStats.fg2m || 0) + (stats.fg2m || 0);
+                                    foundPlayer.totalStats.fg3m = (foundPlayer.totalStats.fg3m || 0) + (stats.fg3m || 0);
+                                    foundPlayer.totalStats.fg2m_miss = (foundPlayer.totalStats.fg2m_miss || 0) + (stats.fg2m_miss || 0);
+                                    foundPlayer.totalStats.fg3m_miss = (foundPlayer.totalStats.fg3m_miss || 0) + (stats.fg3m_miss || 0);
+                                }
+                            });
+                        });
+
+                        const mergedGames = [...newGames, ...games].sort((a, b) => b.id.localeCompare(a.id));
+                        saveTeamState(mergedTeams);
+                        setGames(mergedGames);
+                        if (!window.firebaseDb) {
+                            localStorage.setItem('stat_games', JSON.stringify(mergedGames));
+                        }
+                        showToast(`Merged ${newGames.length} new game(s)!`, "success");
+                    } catch (err) {
+                        showToast("Failed to complete data merge.", "error");
+                    }
+                };
+            };
+
             const handleCreateTeam = (e) => {
                 e.preventDefault();
                 if (!newTeamName.trim()) return;
@@ -705,7 +945,7 @@
 
             const renderPlayerCompactRow = (playerId, isTeamA) => {
                 const teamObj = isTeamA ? teams.find(t => t.id === teamAId) : teams.find(t => t.id === teamBId);
-                const player = teamObj?.players.find(p => p.id === playerId);
+                const player = teams.flatMap(t => t.players).find(p => p.id === playerId);
                 if (!player) return null;
                 const stats = liveStats[playerId] || { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 };
                 const currentPct = computeShootingPercentages(stats);
@@ -733,7 +973,7 @@
                                     {isWarning && <span className="px-1 py-0.5 bg-amber-955 text-amber-400 text-[8px] font-black border border-amber-800 rounded uppercase">4 PF</span>}
                                     <button 
                                         onClick={(e) => { e.stopPropagation(); triggerSubModal(player.id, isTeamA); }}
-                                        className="text-[9px] text-orange-400 hover:text-orange-300 font-bold flex items-center gap-0.5"
+                                        className="text-[9px] text-orange-400 hover:text-orange-300 font-bold flex items-center gap-0.5 cursor-pointer"
                                     >
                                         Sub
                                     </button>
@@ -771,6 +1011,7 @@
 
                     {/* MAIN DECK */}
                     <main>
+                        {/* TAB 1: DUAL CONSOLE WITH TIERED BUTTON HIERARCHY */}
                         {activeTab === 'live' && (
                             <div>
                                 {!isGameLive ? (
@@ -817,8 +1058,8 @@
                                             <div className="flex justify-between items-center border-b border-slate-800 pb-1.5">
                                                 <span className="text-[10px] text-emerald-400 uppercase tracking-wider font-extrabold flex items-center gap-1"><Icons.Zap /> Tap action first, then select player on court</span>
                                                 <div className="flex gap-2">
-                                                    <button onClick={handleUndo} disabled={loggedHistory.length === 0} className="px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold">Undo</button>
-                                                    <button onClick={() => setCorrectionMode(!correctionMode)} className={`px-2 py-0.5 rounded text-[10px] font-bold border ${correctionMode ? 'bg-red-955 text-red-400 border-red-700' : 'bg-slate-950 text-slate-400 border-slate-800'}`}>Correction</button>
+                                                    <button onClick={handleUndo} disabled={loggedHistory.length === 0} className="px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold cursor-pointer">Undo</button>
+                                                    <button onClick={() => setCorrectionMode(!correctionMode)} className={`px-2 py-0.5 rounded text-[10px] font-bold border cursor-pointer ${correctionMode ? 'bg-red-955 text-red-400 border-red-700' : 'bg-slate-950 text-slate-400 border-slate-800'}`}>Correction</button>
                                                 </div>
                                             </div>
 
@@ -900,7 +1141,7 @@
                                             
                                             <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl md:rounded-2xl space-y-3">
                                                 <div className="space-y-1.5">
-                                                    <button onClick={() => setConfirmDialog({ title: "End Match?", text: "Lock boxscores permanently.", onConfirm: () => { handleEndGame(); setConfirmDialog(null); } })} className="w-full bg-emerald-600 font-bold py-2 rounded-xl text-xs text-white">Save Boxscore</button>
+                                                    <button onClick={() => setConfirmDialog({ title: "End Match?", text: "Lock boxscores permanently.", onConfirm: () => { handleEndGame(); setConfirmDialog(null); } })} className="w-full bg-emerald-600 font-bold py-2 rounded-xl text-xs text-white cursor-pointer">Save Boxscore</button>
                                                     <button onClick={handleResetMatch} className="w-full bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/40 text-amber-400 font-bold py-2 px-3 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer">Clear & Restart Game</button>
                                                     <button onClick={() => setConfirmDialog({ title: "Cancel Match?", text: "This deletes all active progress for this session. No logs will be saved to disk.", onConfirm: () => { setIsGameLive(false); setActiveAction(null); setConfirmDialog(null); } })} className="w-full bg-slate-950/60 hover:text-red-300 hover:border-red-900 border border-slate-855 text-slate-500 text-xs py-1.5 rounded-xl transition-all cursor-pointer">Discard Match</button>
                                                 </div>
@@ -919,11 +1160,18 @@
                                         <h3 className="text-base font-bold text-white font-sans">Division Rosters</h3>
                                     </div>
                                     <div className="flex flex-wrap gap-1.5 text-xs font-bold font-sans">
+                                        <button onClick={handleExportRostersOnly} className="bg-slate-900 px-3 py-1.5 rounded border border-slate-800 text-slate-300 cursor-pointer">Export Templates</button>
+                                        <label className="bg-slate-900 px-3 py-1.5 rounded border border-slate-800 text-slate-300 cursor-pointer">Import Templates<input type="file" accept=".json" onChange={handleImportRostersOnly} className="hidden" /></label>
+                                        
                                         {/* SMART CSV ROSTER IMPORTER DOCK BUTTON */}
                                         <label className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded cursor-pointer transition-colors">
                                             Import CSV Roster (Sheets)
                                             <input type="file" accept=".csv" onChange={handleImportCSV} className="hidden" />
                                         </label>
+
+                                        <button onClick={handleExportData} className="bg-slate-900 px-3 py-1.5 rounded border border-slate-800 text-slate-300 cursor-pointer">Export DB</button>
+                                        <label className="bg-slate-900 px-3 py-1.5 rounded border border-slate-800 text-slate-300 cursor-pointer">Restore DB<input type="file" accept=".json" onChange={handleImportData} className="hidden" /></label>
+                                        <label className="bg-slate-900 px-3 py-1.5 rounded border border-slate-855 text-emerald-400 cursor-pointer">Merge Matches<input type="file" accept=".json" onChange={handleMergeData} className="hidden" /></label>
                                     </div>
                                 </div>
 
@@ -942,7 +1190,7 @@
                                             <div className="overflow-x-auto">
                                                 <table className="w-full text-left text-[11px] min-w-[900px]">
                                                     <thead>
-                                                        <tr className="bg-slate-950/30 text-slate-400 font-mono border-b border-slate-850">
+                                                        <tr className="bg-slate-950/30 text-slate-400 font-mono border-b border-slate-855">
                                                             <th className="py-2 px-4">No.</th>
                                                             <th className="py-2 px-4">Name</th>
                                                             <th className="py-2 px-2 text-center">GP</th>
@@ -972,8 +1220,8 @@
                                                                     <td className="py-2.5 px-2 text-center font-bold text-cyan-400">{avgs.fg3Pct}</td>
                                                                     <td className="py-2.5 px-2 text-center text-emerald-300">{avgs.reb}</td>
                                                                     <td className="py-2.5 px-2 text-center text-blue-300">{avgs.ast}</td>
-                                                                    <td className="py-2.5 px-2 text-center text-teal-400">{avgs.spg}</td>
-                                                                    <td className="py-2.5 px-2 text-center text-violet-400">{avgs.bpg}</td>
+                                                                    <td className="py-2.5 px-2 text-center text-teal-400 font-mono">{avgs.spg}</td>
+                                                                    <td className="py-2.5 px-2 text-center text-violet-400 font-mono">{avgs.bpg}</td>
                                                                     <td className="py-2.5 px-2 text-center text-amber-500">{avgs.to}</td>
                                                                     <td className="py-2.5 px-2 text-center text-red-400">{avgs.pf}</td>
                                                                     <td className="py-2.5 px-4 text-center"><button onClick={() => handleDeletePlayer(team.id, p.id)} className="text-slate-500 hover:text-red-400"><Icons.Trash /></button></td>
@@ -1071,10 +1319,10 @@
                                                                                 <td className="py-2 px-2 text-center text-cyan-400 font-bold">{pPct.fg3Pct}</td>
                                                                                 <td className="py-2 px-2 text-center text-emerald-400">{pstats.reb}</td>
                                                                                 <td className="py-2 px-2 text-center text-blue-400">{pstats.ast}</td>
-                                                                                <td className="py-2 px-2 text-center text-teal-400">{(pstats.stl || 0)}</td>
-                                                                                <td className="py-2 px-2 text-center text-violet-400">{(pstats.blk || 0)}</td>
-                                                                                <td className="py-2 px-2 text-center text-amber-500">{pstats.to}</td>
-                                                                                <td className="py-2 px-2 text-center text-red-400">{pstats.pf}</td>
+                                                                                <td className="py-2 px-2 text-center text-teal-400 font-mono">{(pstats.stl || 0)}</td>
+                                                                                <td className="py-2 px-2 text-center text-violet-400 font-mono">{(pstats.blk || 0)}</td>
+                                                                                <td className="py-2 px-2 text-center text-amber-500 font-mono">{pstats.to}</td>
+                                                                                <td className="py-2 px-2 text-center text-red-400 font-mono">{pstats.pf}</td>
                                                                             </tr>
                                                                         );
                                                                     })}
@@ -1141,7 +1389,7 @@
                             </div>
                         )}
 
-                        {/* TAB 4: COMPREHENSIVE ALL-PLAYER LEADERBOARDS */}
+                        {/* TAB 4: COMPREHENSIVE ALL PLAYER LEADERBOARDS */}
                         {activeTab === 'leaders' && (
                             <div className="space-y-6">
                                 <div>
@@ -1184,8 +1432,8 @@
                                     <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col max-h-[350px]">
                                         <h4 className="font-extrabold text-[11px] uppercase text-teal-400 border-b border-slate-800 pb-2 mb-2 flex justify-between"><span>Steals (SPG)</span> <span>STL</span></h4>
                                         <div className="space-y-2 overflow-y-auto flex-1 pr-1 text-xs font-medium">
-                                            {teams.flatMap(t => t.players.map(p => ({ ...p, team: t.name, avg: getAverages(p) }))).sort((a,b) => parseFloat(b.avg.spg) - parseFloat(a.avg.spg)).map((p, i) => (
-                                                <div key={p.id} className="flex justify-between border-b border-slate-850/40 py-1.5 last:border-0"><span className="truncate text-slate-300"><strong className="font-mono text-slate-500 mr-1">#{i+1}</strong>{p.name}</span><span className="font-mono font-bold text-teal-400 bg-teal-500/5 px-1.5 rounded">{p.avg.spg}</span></div>
+                                            {teams.flatMap(t => t.players.map(p => ({ ...p, team: t.name, avg: getAverages(p) }))).sort((a,b) => parseFloat(b.avg.stl) - parseFloat(a.avg.stl)).map((p, i) => (
+                                                <div key={p.id} className="flex justify-between border-b border-slate-850/40 py-1.5 last:border-0"><span className="truncate text-slate-300"><strong className="font-mono text-slate-500 mr-1">#{i+1}</strong>{p.name}</span><span className="font-mono font-bold text-teal-400 bg-teal-500/5 px-1.5 rounded">{p.avg.stl}</span></div>
                                             ))}
                                         </div>
                                     </div>
@@ -1194,8 +1442,8 @@
                                     <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col max-h-[350px]">
                                         <h4 className="font-extrabold text-[11px] uppercase text-violet-400 border-b border-slate-800 pb-2 mb-2 flex justify-between"><span>Blocks (BPG)</span> <span>BLK</span></h4>
                                         <div className="space-y-2 overflow-y-auto flex-1 pr-1 text-xs font-medium">
-                                            {teams.flatMap(t => t.players.map(p => ({ ...p, team: t.name, avg: getAverages(p) }))).sort((a,b) => parseFloat(b.avg.bpg) - parseFloat(a.avg.bpg)).map((p, i) => (
-                                                <div key={p.id} className="flex justify-between border-b border-slate-850/40 py-1.5 last:border-0"><span className="truncate text-slate-300"><strong className="font-mono text-slate-500 mr-1">#{i+1}</strong>{p.name}</span><span className="font-mono font-bold text-violet-400 bg-violet-500/5 px-1.5 rounded">{p.avg.bpg}</span></div>
+                                            {teams.flatMap(t => t.players.map(p => ({ ...p, team: t.name, avg: getAverages(p) }))).sort((a,b) => parseFloat(b.avg.blk) - parseFloat(a.avg.blk)).map((p, i) => (
+                                                <div key={p.id} className="flex justify-between border-b border-slate-850/40 py-1.5 last:border-0"><span className="truncate text-slate-300"><strong className="font-mono text-slate-500 mr-1">#{i+1}</strong>{p.name}</span><span className="font-mono font-bold text-violet-400 bg-violet-500/5 px-1.5 rounded">{p.avg.blk}</span></div>
                                             ))}
                                         </div>
                                     </div>
@@ -1483,7 +1731,7 @@
                                         return benchIds.map(benchId => {
                                             const p = teamObj?.players.find(x => x.id === benchId);
                                             return p ? (
-                                                <button key={benchId} onClick={() => executeSubstitution(subTargetPlayer.id, benchId, subTargetPlayer.team === 'A')} className="w-full text-xs flex justify-between p-2.5 bg-slate-950 border border-slate-850 rounded-lg text-slate-200 cursor-pointer">
+                                                <button key={benchId} onClick={() => executeSubstitution(subTargetPlayer.id, benchId, subTargetPlayer.team === 'A')} className="w-full text-xs flex justify-between p-2.5 bg-slate-950 border border-slate-855 rounded-lg text-slate-200 cursor-pointer">
                                                     <span>#{p.number} {p.name}</span> <span className="text-emerald-400 font-bold">Sub In</span>
                                                 </button>
                                             ) : null;
@@ -1503,20 +1751,20 @@
                                     <h3 className="text-sm font-black text-white">Record Action: <span className="text-emerald-400 font-mono">{activeAction.label}</span></h3>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="bg-slate-950/60 p-3 rounded-xl border border-slate-850">
+                                    <div className="bg-slate-950/60 p-3 rounded-xl border border-slate-855">
                                         <div className="font-extrabold text-[10px] text-slate-400 mb-2 uppercase">Home On Court</div>
                                         <div className="space-y-1.5">
                                             {teamALineup.map(id => {
-                                                const p = teams.find(t => t.id === teamAId)?.players.find(x => x.id === id);
+                                                const p = teams.flatMap(t => t.players).find(x => x.id === id);
                                                 return p ? <button key={id} onClick={() => handlePlayerClick(id, true)} className="w-full p-2.5 bg-slate-900 border border-slate-800 text-left text-xs text-white font-bold rounded-xl hover:border-emerald-500 transition-colors">#{p.number} {p.name}</button> : null;
                                             })}
                                         </div>
                                     </div>
-                                    <div className="bg-slate-950/60 p-3 rounded-xl border border-slate-850">
+                                    <div className="bg-slate-950/60 p-3 rounded-xl border border-slate-855">
                                         <div className="font-extrabold text-[10px] text-slate-400 mb-2 uppercase">Away On Court</div>
                                         <div className="space-y-1.5">
                                             {teamBLineup.map(id => {
-                                                const p = teams.find(t => t.id === teamBId)?.players.find(x => x.id === id);
+                                                const p = teams.flatMap(t => t.players).find(x => x.id === id);
                                                 return p ? <button key={id} onClick={() => handlePlayerClick(id, false)} className="w-full p-2.5 bg-slate-900 border border-slate-800 text-left text-xs text-white font-bold rounded-xl hover:border-emerald-500 transition-colors">#{p.number} {p.name}</button> : null;
                                             })}
                                         </div>
@@ -1531,7 +1779,7 @@
                     {foulAlert && (
                         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
                             <div className={`border p-6 rounded-2xl w-full max-w-sm shadow-2xl relative text-center my-auto ${
-                                foulAlert.type === 'disqualified' ? 'bg-red-950/90 border-red-500' : 'bg-amber-955 border-amber-500'
+                                foulAlert.type === 'disqualified' ? 'bg-red-950/90 border-red-500' : 'bg-amber-955 border-amber-700'
                             }`}>
                                 <div className="text-4xl mb-3">
                                     {foulAlert.type === 'disqualified' ? '🚨' : '⚠️'}
@@ -1548,7 +1796,7 @@
                                 <button 
                                     onClick={() => setFoulAlert(null)}
                                     className={`w-full py-2.5 rounded-xl text-xs font-bold text-white transition-colors cursor-pointer ${
-                                        foulAlert.type === 'disqualified' ? 'bg-red-650 hover:bg-red-500' : 'bg-amber-650 hover:bg-amber-550'
+                                        foulAlert.type === 'disqualified' ? 'bg-red-600 hover:bg-red-500' : 'bg-amber-600 hover:bg-amber-500'
                                     }`}
                                 >
                                     Acknowledge Alert
