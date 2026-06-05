@@ -1130,6 +1130,65 @@
                 });
             };
 
+            const handleDeleteGame = (gameId) => {
+                setConfirmDialog({
+                    title: "Delete Game Record?",
+                    text: "This will permanently delete this game record and subtract its stats from all players' career averages. This cannot be undone.",
+                    onConfirm: async () => {
+                        const gameToDelete = games.find(g => g.id === gameId);
+                        if (!gameToDelete) return;
+
+                        // Subtract game stats from players to keep career records continuous and accurate
+                        const updatedTeams = teams.map(team => {
+                            if (team.id !== gameToDelete.teamAId && team.id !== gameToDelete.teamBId) return team;
+
+                            const updatedPlayers = team.players.map(player => {
+                                const pstats = gameToDelete.playerStats[player.id];
+                                if (!pstats) return player; // Player didn't participate in this specific game
+
+                                return {
+                                    ...player,
+                                    gamesPlayed: Math.max(0, (player.gamesPlayed || 0) - 1),
+                                    totalStats: {
+                                        pts: Math.max(0, (player.totalStats.pts || 0) - (pstats.pts || 0)),
+                                        ast: Math.max(0, (player.totalStats.ast || 0) - (pstats.ast || 0)),
+                                        reb: Math.max(0, (player.totalStats.reb || 0) - (pstats.reb || 0)),
+                                        stl: Math.max(0, (player.totalStats.stl || 0) - (pstats.stl || 0)),
+                                        blk: Math.max(0, (player.totalStats.blk || 0) - (pstats.blk || 0)),
+                                        to: Math.max(0, (player.totalStats.to || 0) - (pstats.to || 0)),
+                                        pf: Math.max(0, (player.totalStats.pf || 0) - (pstats.pf || 0)),
+                                        fg2m: Math.max(0, (player.totalStats.fg2m || 0) - (pstats.fg2m || 0)),
+                                        fg3m: Math.max(0, (player.totalStats.fg3m || 0) - (pstats.fg3m || 0)),
+                                        fg2m_miss: Math.max(0, (player.totalStats.fg2m_miss || 0) - (pstats.fg2m_miss || 0)),
+                                        fg3m_miss: Math.max(0, (player.totalStats.fg3m_miss || 0) - (pstats.fg3m_miss || 0)),
+                                        ftm: Math.max(0, (player.totalStats.ftm || 0) - (pstats.ftm || 0)),
+                                        ft_miss: Math.max(0, (player.totalStats.ft_miss || 0) - (pstats.ft_miss || 0))
+                                    }
+                                };
+                            });
+
+                            return { ...team, players: updatedPlayers };
+                        });
+
+                        const updatedGames = games.filter(g => g.id !== gameId);
+
+                        setGames(updatedGames);
+                        saveTeamState(updatedTeams);
+
+                        if (window.firebaseDb && user && user.uid !== "offline") {
+                            const { doc, deleteDoc } = window.firebaseUtils;
+                            const appId = typeof __app_id !== 'undefined' ? __app_id : 'wknd-league-stats';
+                            await deleteDoc(doc(window.firebaseDb, 'artifacts', appId, 'public', 'data', 'games', gameId));
+                        } else {
+                            localStorage.setItem('stat_games', JSON.stringify(updatedGames));
+                        }
+
+                        setConfirmDialog(null);
+                        showToast("Game record deleted and career averages recalculated!", "success");
+                    }
+                });
+            };
+
             const handleCreateTeam = (e) => {
                 e.preventDefault();
                 if (!newTeamName.trim()) return;
@@ -1853,6 +1912,15 @@
                                                             className="px-2.5 py-1 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 text-orange-400 font-bold text-xs rounded-lg cursor-pointer transition-colors"
                                                         >
                                                             Edit Box Score
+                                                        </button>
+
+                                                        {/* DELETE GAME RECORD BUTTON */}
+                                                        <button 
+                                                            onClick={() => handleDeleteGame(game.id)}
+                                                            className="p-2 bg-red-650/10 hover:bg-red-650/20 border border-red-500/30 text-red-400 rounded-lg cursor-pointer transition-all duration-200"
+                                                            title="Delete Game Record"
+                                                        >
+                                                            <Icons.Trash />
                                                         </button>
                                                     </div>
                                                 </div>
