@@ -51,12 +51,10 @@
     </style>
 </head>
 <body class="min-h-screen">
-
     <div id="root"></div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Detect if loaded in live sync environment
@@ -71,7 +69,7 @@
                 window.firebaseApp = app;
                 window.firebaseDb = db;
                 window.firebaseAuth = auth;
-                window.firebaseUtils = { doc, setDoc, getDoc, onSnapshot, collection, deleteDoc, signInAnonymously, signInWithCustomToken };
+                window.firebaseUtils = { doc, setDoc, getDoc, onSnapshot, collection, deleteDoc, signInAnonymously, signInWithCustomToken, onAuthStateChanged };
                 console.log("Real-time cloud database initialized successfully.");
             } catch (e) {
                 console.warn("Could not bind cloud sync (running standalone offline).", e);
@@ -196,6 +194,7 @@
         ];
 
         function App() {
+            const [user, setUser] = useState(null); // Firebase User Tracker
             const [teams, setTeams] = useState([]);
             const [games, setGames] = useState([]);
             const [activeTab, setActiveTab] = useState('live');
@@ -214,6 +213,7 @@
             
             const [liveStats, setLiveStats] = useState({});
             const [gameLog, setGameLog] = useState([]);
+            const [playedPlayers, setPlayedPlayers] = useState([]); // Tracks players on-court for accurate GP
             
             const [loggedHistory, setLoggedHistory] = useState([]);
             const [activeAction, setActiveAction] = useState(null); 
@@ -351,50 +351,74 @@
                 };
             };
 
-            /* Integrating data syncing networks & local migrations */
+            /* Secure authentications with lifecycle checking */
             useEffect(() => {
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'wknd-league-stats';
-
                 if (window.firebaseDb) {
-                    const { collection, onSnapshot, signInAnonymously, signInWithCustomToken } = window.firebaseUtils;
                     const auth = window.firebaseAuth;
+                    const { onAuthStateChanged, signInAnonymously, signInWithCustomToken } = window.firebaseUtils;
 
-                    const initializeSync = async () => {
+                    const initAuth = async () => {
                         try {
                             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                                 await signInWithCustomToken(auth, __initial_auth_token);
                             } else {
                                 await signInAnonymously(auth);
                             }
-                        } catch (e) {}
-
-                        const teamsPath = collection(window.firebaseDb, 'artifacts', appId, 'public', 'data', 'teams');
-                        const unsubTeams = onSnapshot(teamsPath, (snapshot) => {
-                            const cloudTeams = [];
-                            snapshot.forEach(doc => { cloudTeams.push({ id: doc.id, ...doc.data() }); });
-                            if (cloudTeams.length > 0) {
-                                setTeams(cloudTeams);
-                            } else {
-                                setTeams(initialTeams);
-                            }
-                        });
-
-                        const gamesPath = collection(window.firebaseDb, 'artifacts', appId, 'public', 'data', 'games');
-                        const unsubGames = onSnapshot(gamesPath, (snapshot) => {
-                            const cloudGames = [];
-                            snapshot.forEach(doc => { cloudGames.push({ id: doc.id, ...doc.data() }); });
-                            setGames(cloudGames.sort((a, b) => b.id.localeCompare(a.id)));
-                        });
-
-                        return () => { unsubTeams(); unsubGames(); };
+                        } catch (e) {
+                            console.warn("Authentication initialization error: ", e);
+                        }
                     };
-                    initializeSync();
+
+                    initAuth();
+                    const unsubscribe = onAuthStateChanged(auth, (usr) => {
+                        setUser(usr);
+                    });
+                    return () => unsubscribe();
+                } else {
+                    // Stands in offline simulation mode if Firebase is structurally missing
+                    setUser({ uid: "offline" });
+                }
+            }, []);
+
+            /* Realtime cloud database syncing after authentication resolves */
+            useEffect(() => {
+                if (!user) return;
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'wknd-league-stats';
+
+                if (window.firebaseDb && user.uid !== "offline") {
+                    const { collection, onSnapshot } = window.firebaseUtils;
+
+                    const teamsPath = collection(window.firebaseDb, 'artifacts', appId, 'public', 'data', 'teams');
+                    const unsubTeams = onSnapshot(teamsPath, (snapshot) => {
+                        const cloudTeams = [];
+                        snapshot.forEach(doc => { cloudTeams.push({ id: doc.id, ...doc.data() }); });
+                        if (cloudTeams.length > 0) {
+                            setTeams(cloudTeams);
+                        } else {
+                            setTeams(initialTeams);
+                        }
+                    }, (error) => {
+                        console.error("Teams network listener failed: ", error);
+                    });
+
+                    const gamesPath = collection(window.firebaseDb, 'artifacts', appId, 'public', 'data', 'games');
+                    const unsubGames = onSnapshot(gamesPath, (snapshot) => {
+                        const cloudGames = [];
+                        snapshot.forEach(doc => { cloudGames.push({ id: doc.id, ...doc.data() }); });
+                        setGames(cloudGames.sort((a, b) => b.id.localeCompare(a.id)));
+                    }, (error) => {
+                        console.error("Games network listener failed: ", error);
+                    });
+
+                    return () => {
+                        unsubTeams();
+                        unsubGames();
+                    };
                 } else {
                     const savedTeams = localStorage.getItem('stat_teams');
                     const savedGames = localStorage.getItem('stat_games');
-                    
+                                        
                     let loadedTeams = savedTeams ? JSON.parse(savedTeams) : initialTeams;
-                    // Smart Migration: Force WKND Season 3 defaults if the old placeholders (Apex Thunder) exist
                     if (loadedTeams.some(t => t.name === "Apex Thunder")) {
                         loadedTeams = initialTeams;
                         localStorage.setItem('stat_teams', JSON.stringify(initialTeams));
@@ -402,7 +426,10 @@
                     setTeams(loadedTeams);
                     setGames(savedGames ? JSON.parse(savedGames) : []);
                 }
+            }, [user]);
 
+            /* Restore active live tracking sessions */
+            useEffect(() => {
                 try {
                     const activeSession = localStorage.getItem('active_live_session');
                     if (activeSession) {
@@ -418,11 +445,13 @@
                         setLiveStats(session.liveStats || {});
                         setGameLog(session.gameLog || []);
                         setLoggedHistory(session.loggedHistory || []);
+                        setPlayedPlayers(session.playedPlayers || []);
                         setIsGameLive(true);
                     }
                 } catch (e) {}
             }, []);
 
+            /* Save local caches for failsafes */
             useEffect(() => {
                 if (!window.firebaseDb && teams.length > 0) {
                     localStorage.setItem('stat_teams', JSON.stringify(teams));
@@ -437,12 +466,12 @@
 
             useEffect(() => {
                 if (isGameLive) {
-                    const session = { teamAId, teamBId, teamAScore, teamBScore, teamALineup, teamABench, teamBLineup, teamBBench, liveStats, gameLog, loggedHistory };
+                    const session = { teamAId, teamBId, teamAScore, teamBScore, teamALineup, teamABench, teamBLineup, teamBBench, liveStats, gameLog, loggedHistory, playedPlayers };
                     localStorage.setItem('active_live_session', JSON.stringify(session));
                 } else {
                     localStorage.removeItem('active_live_session');
                 }
-            }, [isGameLive, teamAId, teamBId, teamAScore, teamBScore, teamALineup, teamABench, teamBLineup, teamBBench, liveStats, gameLog, loggedHistory]);
+            }, [isGameLive, teamAId, teamBId, teamAScore, teamBScore, teamALineup, teamABench, teamBLineup, teamBBench, liveStats, gameLog, loggedHistory, playedPlayers]);
 
             const showToast = (message, type = 'success') => {
                 setToast({ message, type });
@@ -455,7 +484,7 @@
 
             const saveTeamState = async (updatedTeams) => {
                 setTeams(updatedTeams);
-                if (window.firebaseDb) {
+                if (window.firebaseDb && user && user.uid !== "offline") {
                     const { doc, setDoc } = window.firebaseUtils;
                     const appId = typeof __app_id !== 'undefined' ? __app_id : 'wknd-league-stats';
                     for (const team of updatedTeams) {
@@ -467,7 +496,7 @@
             const saveNewGameState = async (newGame, updatedTeams) => {
                 setGames(prev => [newGame, ...prev]);
                 setTeams(updatedTeams);
-                if (window.firebaseDb) {
+                if (window.firebaseDb && user && user.uid !== "offline") {
                     const { doc, setDoc } = window.firebaseUtils;
                     const appId = typeof __app_id !== 'undefined' ? __app_id : 'wknd-league-stats';
                     await setDoc(doc(window.firebaseDb, 'artifacts', appId, 'public', 'data', 'games', newGame.id), newGame);
@@ -581,6 +610,9 @@
                 setTeamBLineup(startersB);
                 setTeamBBench(benchB);
 
+                // Initialize starting lineup into the live participation tracker
+                setPlayedPlayers([...startersA, ...startersB]);
+
                 const initializedStats = {};
                 teamAObj.players.forEach(p => { initializedStats[p.id] = { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 }; });
                 teamBObj.players.forEach(p => { initializedStats[p.id] = { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 }; });
@@ -627,6 +659,11 @@
                 const logWithTag = `[${isTeamA ? 'HOME' : 'AWAY'}] ${logText}`;
 
                 setLoggedHistory(prev => [{ playerId, statField, changeAmount, attachedTrackingStat, previousTeamAScore: teamAScore, previousTeamBScore: teamBScore, logText: logWithTag }, ...prev]);
+
+                // Register this player in game participation if they score/commit actions
+                if (!playedPlayers.includes(playerId)) {
+                    setPlayedPlayers(prev => [...prev, playerId]);
+                }
 
                 setLiveStats(prev => {
                     const currentVal = prev[playerId]?.[statField] || 0;
@@ -693,8 +730,99 @@
                     setTeamBLineup(prev => prev.map(id => id === outId ? inId : id));
                     setTeamBBench(prev => prev.map(id => id === inId ? outId : id));
                 }
+                
+                // Add substituted player to game participation tracker
+                if (!playedPlayers.includes(inId)) {
+                    setPlayedPlayers(prev => [...prev, inId]);
+                }
+
                 setShowSubstitutionModal(false);
                 setSubTargetPlayer(null);
+            };
+
+            /* COMPLETELY RESOLVED: The handleEndGame function logs and compiles matches safely */
+            const handleEndGame = async () => {
+                if (!teamAId || !teamBId) return;
+
+                const teamAObj = teams.find(t => t.id === teamAId);
+                const teamBObj = teams.find(t => t.id === teamBId);
+                if (!teamAObj || !teamBObj) return;
+
+                const gameId = `game_${Date.now()}`;
+                const gameDate = `${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+
+                const cleanSavedStats = {};
+                Object.keys(liveStats).forEach(pId => {
+                    cleanSavedStats[pId] = { ...liveStats[pId] };
+                });
+
+                const newGame = {
+                    id: gameId,
+                    date: gameDate,
+                    teamAId,
+                    teamBId,
+                    teamAName: teamAObj.name,
+                    teamBName: teamBObj.name,
+                    teamAScore,
+                    teamBScore,
+                    playerStats: cleanSavedStats
+                };
+
+                // Compile career standings and stats
+                const updatedTeams = teams.map(team => {
+                    if (team.id !== teamAId && team.id !== teamBId) return team;
+
+                    const updatedPlayers = team.players.map(player => {
+                        // Check if player participated in the live match
+                        const didParticipate = playedPlayers.includes(player.id) || 
+                                              Object.values(liveStats[player.id] || {}).some(val => val > 0);
+
+                        if (!didParticipate) return player;
+
+                        const statsLive = liveStats[player.id] || { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 };
+
+                        return {
+                            ...player,
+                            gamesPlayed: (player.gamesPlayed || 0) + 1,
+                            totalStats: {
+                                pts: (player.totalStats.pts || 0) + (statsLive.pts || 0),
+                                ast: (player.totalStats.ast || 0) + (statsLive.ast || 0),
+                                reb: (player.totalStats.reb || 0) + (statsLive.reb || 0),
+                                stl: (player.totalStats.stl || 0) + (statsLive.stl || 0),
+                                blk: (player.totalStats.blk || 0) + (statsLive.blk || 0),
+                                to: (player.totalStats.to || 0) + (statsLive.to || 0),
+                                pf: (player.totalStats.pf || 0) + (statsLive.pf || 0),
+                                fg2m: (player.totalStats.fg2m || 0) + (statsLive.fg2m || 0),
+                                fg3m: (player.totalStats.fg3m || 0) + (statsLive.fg3m || 0),
+                                fg2m_miss: (player.totalStats.fg2m_miss || 0) + (statsLive.fg2m_miss || 0),
+                                fg3m_miss: (player.totalStats.fg3m_miss || 0) + (statsLive.fg3m_miss || 0)
+                            }
+                        };
+                    });
+
+                    return { ...team, players: updatedPlayers };
+                });
+
+                await saveNewGameState(newGame, updatedTeams);
+
+                // Tear down game configurations safely
+                setIsGameLive(false);
+                setTeamAId("");
+                setTeamBId("");
+                setTeamAScore(0);
+                setTeamBScore(0);
+                setTeamALineup([]);
+                setTeamABench([]);
+                setTeamBLineup([]);
+                setTeamBBench([]);
+                setLiveStats({});
+                setGameLog([]);
+                setLoggedHistory([]);
+                setPlayedPlayers([]);
+
+                // Route user to the official logs tab
+                setActiveTab('history');
+                showToast("Live statistics committed to system database successfully!", "success");
             };
 
             const handleSaveHistoricEdit = (e) => {
@@ -763,7 +891,7 @@
 
                 if (!window.firebaseDb) {
                     localStorage.setItem('stat_games', JSON.stringify(updatedGames));
-                } else {
+                } else if (user && user.uid !== "offline") {
                     const { doc, setDoc } = window.firebaseUtils;
                     const appId = typeof __app_id !== 'undefined' ? __app_id : 'wknd-league-stats';
                     setDoc(doc(window.firebaseDb, 'artifacts', appId, 'public', 'data', 'games', editingGame.id), {
@@ -797,6 +925,7 @@
                         setTeamABench(benchA);
                         setTeamBLineup(startersB);
                         setTeamBBench(benchB);
+                        setPlayedPlayers([...startersA, ...startersB]);
 
                         const initializedStats = {};
                         teamAObj.players.forEach(p => { initializedStats[p.id] = { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0, pf: 0, fg2m: 0, fg3m: 0, fg2m_miss: 0, fg3m_miss: 0 }; });
@@ -811,6 +940,51 @@
                         setGameLog([{ time: getWallClockTime(), text: `Match restarted: ${teamAObj.name} vs ${teamBObj.name}` }]);
                         setConfirmDialog(null);
                         showToast("Current game stats cleared! Ready to restart.", "info");
+                    }
+                });
+            };
+
+            /* COMPLETELY RESOLVED: handleDeleteTeam logic */
+            const handleDeleteTeam = (teamId) => {
+                setConfirmDialog({
+                    title: "Delete Team?",
+                    text: "Are you sure you want to delete this team? This will remove all its players and cannot be undone.",
+                    onConfirm: async () => {
+                        const updatedTeams = teams.filter(t => t.id !== teamId);
+                        setTeams(updatedTeams);
+
+                        if (window.firebaseDb && user && user.uid !== "offline") {
+                            const { doc, deleteDoc } = window.firebaseUtils;
+                            const appId = typeof __app_id !== 'undefined' ? __app_id : 'wknd-league-stats';
+                            await deleteDoc(doc(window.firebaseDb, 'artifacts', appId, 'public', 'data', 'teams', teamId));
+                        } else {
+                            localStorage.setItem('stat_teams', JSON.stringify(updatedTeams));
+                        }
+                        setConfirmDialog(null);
+                        showToast("Team deleted successfully.", "success");
+                    }
+                });
+            };
+
+            /* COMPLETELY RESOLVED: handleDeletePlayer logic */
+            const handleDeletePlayer = (teamId, playerId) => {
+                setConfirmDialog({
+                    title: "Delete Player?",
+                    text: "Are you sure you want to remove this player from the team roster?",
+                    onConfirm: async () => {
+                        const updatedTeams = teams.map(t => {
+                            if (t.id === teamId) {
+                                return {
+                                    ...t,
+                                    players: t.players.filter(p => p.id !== playerId)
+                                };
+                            }
+                            return t;
+                        });
+
+                        await saveTeamState(updatedTeams);
+                        setConfirmDialog(null);
+                        showToast("Player removed from roster.", "success");
                     }
                 });
             };
@@ -960,8 +1134,8 @@
                         onClick={() => hasActionArmed && handlePlayerClick(player.id, isTeamA)}
                         className={`bg-slate-950/90 border p-3 rounded-xl flex items-center justify-between gap-2 ${
                             hasActionArmed 
-                            ? 'armed-target hover:bg-slate-900 border-emerald-500/50' 
-                            : 'border-slate-800 hover:border-slate-700/60'
+                                ? 'armed-target hover:bg-slate-900 border-emerald-500/50' 
+                                : 'border-slate-800 hover:border-slate-700/60'
                         } ${isDisqualified ? 'opacity-40 bg-slate-950/60' : ''}`}
                     >
                         <div className="flex items-center gap-2 min-w-0">
@@ -969,11 +1143,11 @@
                             <div className="min-w-0">
                                 <span className="font-extrabold text-xs text-white truncate block">{player.name}</span>
                                 <div className="flex gap-1 mt-0.5">
-                                    {isDisqualified && <span className="px-1 py-0.5 bg-red-955 text-red-400 text-[8px] font-black border border-red-900 rounded uppercase">OUT</span>}
-                                    {isWarning && <span className="px-1 py-0.5 bg-amber-955 text-amber-400 text-[8px] font-black border border-amber-800 rounded uppercase">4 PF</span>}
+                                    {isDisqualified && <span className="px-1 py-0.5 bg-red-950 text-red-400 text-[8px] font-black border border-red-900 rounded uppercase">OUT</span>}
+                                    {isWarning && <span className="px-1 py-0.5 bg-amber-950 text-amber-400 text-[8px] font-black border border-amber-800 rounded uppercase">4 PF</span>}
                                     <button 
                                         onClick={(e) => { e.stopPropagation(); triggerSubModal(player.id, isTeamA); }}
-                                        className="text-[9px] text-orange-400 hover:text-orange-300 font-bold flex items-center gap-0.5 cursor-pointer"
+                                        className="text-[9px] text-orange-400 hover:text-orange-300 font-bold flex items-center gap-0.5 cursor-pointer animate-pulse"
                                     >
                                         Sub
                                     </button>
@@ -994,6 +1168,17 @@
             return (
                 <div className="max-w-7xl mx-auto px-4 py-4 md:py-8">
                     
+                    {/* TOAST SYSTEM */}
+                    {toast && (
+                        <div className={`fixed top-4 right-4 z-50 px-4 py-2.5 rounded-xl text-xs font-bold shadow-2xl transition-all duration-300 border ${
+                            toast.type === 'error' ? 'bg-red-950 text-red-400 border-red-800' : 
+                            toast.type === 'info' ? 'bg-blue-950 text-blue-400 border-blue-800' : 
+                            'bg-emerald-955 text-emerald-400 border-emerald-800'
+                        }`}>
+                            {toast.message}
+                        </div>
+                    )}
+
                     {/* LEAGUE HEADER */}
                     <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4 border-b border-slate-800 pb-4">
                         <div>
@@ -1026,8 +1211,7 @@
                                                     </select>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-slate-400 text-xs font-bold mb-1 uppercase">Away (B)</label>
-                                                    <select value={teamBId} onChange={(e) => setTeamBId(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white text-xs focus:outline-none" required>
+                                                    <label className="block text-slate-400 text-xs font-bold mb-1 uppercase">Away (B)</label>                                                    <select value={teamBId} onChange={(e) => setTeamBId(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white text-xs focus:outline-none" required>
                                                         <option value="">-- Select --</option>
                                                         {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                                                     </select>
@@ -1058,8 +1242,8 @@
                                             <div className="flex justify-between items-center border-b border-slate-800 pb-1.5">
                                                 <span className="text-[10px] text-emerald-400 uppercase tracking-wider font-extrabold flex items-center gap-1"><Icons.Zap /> Tap action first, then select player on court</span>
                                                 <div className="flex gap-2">
-                                                    <button onClick={handleUndo} disabled={loggedHistory.length === 0} className="px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold cursor-pointer">Undo</button>
-                                                    <button onClick={() => setCorrectionMode(!correctionMode)} className={`px-2 py-0.5 rounded text-[10px] font-bold border cursor-pointer ${correctionMode ? 'bg-red-955 text-red-400 border-red-700' : 'bg-slate-950 text-slate-400 border-slate-800'}`}>Correction</button>
+                                                    <button onClick={handleUndo} disabled={loggedHistory.length === 0} className="px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold cursor-pointer disabled:opacity-50">Undo</button>
+                                                    <button onClick={() => setCorrectionMode(!correctionMode)} className={`px-2 py-0.5 rounded text-[10px] font-bold border cursor-pointer ${correctionMode ? 'bg-red-950 text-red-400 border-red-750' : 'bg-slate-955 text-slate-400 border-slate-800'}`}>Correction</button>
                                                 </div>
                                             </div>
 
@@ -1070,7 +1254,7 @@
                                                     {primaryActions.map(act => (
                                                         <button 
                                                             key={act.id} 
-                                                            onClick={() => { setActiveAction(act); setShowLoggingModal(true); }} 
+                                                            onClick={() => { setActiveAction(act); setShowLoggingModal(true); }}
                                                             className={`py-5 md:py-6 px-4 rounded-2xl text-center text-sm font-black tracking-wide border transition-all active:scale-95 cursor-pointer shadow-lg uppercase ${act.colorClass} border-transparent`}
                                                         >
                                                             {act.label}
@@ -1088,7 +1272,7 @@
                                                         {secondaryActions.map(act => (
                                                             <button 
                                                                 key={act.id} 
-                                                                onClick={() => { setActiveAction(act); setShowLoggingModal(true); }} 
+                                                                onClick={() => { setActiveAction(act); setShowLoggingModal(true); }}
                                                                 className={`py-4 px-4 rounded-xl text-center text-xs font-black border transition-all active:scale-95 cursor-pointer shadow-md uppercase ${act.colorClass} border-transparent`}
                                                             >
                                                                 {act.label}
@@ -1104,7 +1288,7 @@
                                                         {tertiaryActions.map(act => (
                                                             <button 
                                                                 key={act.id} 
-                                                                onClick={() => { setActiveAction(act); setShowLoggingModal(true); }} 
+                                                                onClick={() => { setActiveAction(act); setShowLoggingModal(true); }}
                                                                 className={`py-2.5 px-2 rounded-lg text-center text-[10px] font-bold border transition-all active:scale-95 cursor-pointer shadow-sm ${act.colorClass} border-transparent`}
                                                             >
                                                                 {act.label}
@@ -1141,7 +1325,7 @@
                                             
                                             <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl md:rounded-2xl space-y-3">
                                                 <div className="space-y-1.5">
-                                                    <button onClick={() => setConfirmDialog({ title: "End Match?", text: "Lock boxscores permanently.", onConfirm: () => { handleEndGame(); setConfirmDialog(null); } })} className="w-full bg-emerald-600 font-bold py-2 rounded-xl text-xs text-white cursor-pointer">Save Boxscore</button>
+                                                    <button onClick={() => setConfirmDialog({ title: "End Match?", text: "Lock boxscores permanently.", onConfirm: () => { handleEndGame(); setConfirmDialog(null); } })} className="w-full bg-emerald-600 font-bold py-2 rounded-xl text-xs text-white cursor-pointer shadow-lg hover:bg-emerald-500 transition-colors">Save Boxscore</button>
                                                     <button onClick={handleResetMatch} className="w-full bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/40 text-amber-400 font-bold py-2 px-3 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer">Clear & Restart Game</button>
                                                     <button onClick={() => setConfirmDialog({ title: "Cancel Match?", text: "This deletes all active progress for this session. No logs will be saved to disk.", onConfirm: () => { setIsGameLive(false); setActiveAction(null); setConfirmDialog(null); } })} className="w-full bg-slate-950/60 hover:text-red-300 hover:border-red-900 border border-slate-855 text-slate-500 text-xs py-1.5 rounded-xl transition-all cursor-pointer">Discard Match</button>
                                                 </div>
@@ -1176,8 +1360,8 @@
                                 </div>
 
                                 <div className="flex justify-end gap-2 text-xs font-bold">
-                                    <button onClick={() => setShowNewTeamModal(true)} className="bg-slate-900 text-white px-3 py-2 rounded-xl border border-slate-800">Create Team</button>
-                                    <button onClick={() => { if (teams.length === 0) return; setSelectedTeamIdForPlayer(teams[0].id); setShowNewPlayerModal(true); }} className="bg-emerald-600 text-white px-3 py-2 rounded-xl">Add Player</button>
+                                    <button onClick={() => setShowNewTeamModal(true)} className="bg-slate-900 hover:bg-slate-850 text-white px-3 py-2 rounded-xl border border-slate-800 cursor-pointer">Create Team</button>
+                                    <button onClick={() => { if (teams.length === 0) return; setSelectedTeamIdForPlayer(teams[0].id); setShowNewPlayerModal(true); }} className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-xl cursor-pointer">Add Player</button>
                                 </div>
 
                                 <div className="space-y-4">
@@ -1185,7 +1369,7 @@
                                         <div key={team.id} className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-md">
                                             <div className="p-3 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between">
                                                 <span className="font-extrabold text-xs text-white flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: team.color }} /> {team.name}</span>
-                                                <button onClick={() => handleDeleteTeam(team.id)} className="text-slate-500 hover:text-red-400"><Icons.Trash /></button>
+                                                <button onClick={() => handleDeleteTeam(team.id)} className="text-slate-500 hover:text-red-400 cursor-pointer"><Icons.Trash /></button>
                                             </div>
                                             <div className="overflow-x-auto">
                                                 <table className="w-full text-left text-[11px] min-w-[900px]">
@@ -1224,7 +1408,7 @@
                                                                     <td className="py-2.5 px-2 text-center text-violet-400 font-mono">{avgs.bpg}</td>
                                                                     <td className="py-2.5 px-2 text-center text-amber-500">{avgs.to}</td>
                                                                     <td className="py-2.5 px-2 text-center text-red-400">{avgs.pf}</td>
-                                                                    <td className="py-2.5 px-4 text-center"><button onClick={() => handleDeletePlayer(team.id, p.id)} className="text-slate-500 hover:text-red-400"><Icons.Trash /></button></td>
+                                                                    <td className="py-2.5 px-4 text-center"><button onClick={() => handleDeletePlayer(team.id, p.id)} className="text-slate-500 hover:text-red-400 cursor-pointer"><Icons.Trash /></button></td>
                                                                 </tr>
                                                             );
                                                         })}
@@ -1511,7 +1695,7 @@
                                         {/* Home Team Section */}
                                         <div>
                                             <h4 className="text-xs font-black text-emerald-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                                                <span className="w-2 h-2 rounded-full bg-emerald-400" /> {editingGame.teamAName} (Home)
+                                                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" /> {editingGame.teamAName} (Home)
                                             </h4>
                                             <div className="space-y-2">
                                                 {(teams.find(t => t.id === editingGame.teamAId)?.players || [])
@@ -1588,7 +1772,7 @@
                                         {/* Away Team Section */}
                                         <div>
                                             <h4 className="text-xs font-black text-red-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                                                <span className="w-2 h-2 rounded-full bg-red-400" /> {editingGame.teamBName} (Away)
+                                                <span className="w-2.5 h-2.5 rounded-full bg-red-400" /> {editingGame.teamBName} (Away)
                                             </h4>
                                             <div className="space-y-2">
                                                 {(teams.find(t => t.id === editingGame.teamBId)?.players || [])
@@ -1656,13 +1840,13 @@
                                                                         </div>
                                                                     </div>
                                                                 )}
-                            </div>
-                        );
-                    })}
+                                                            </div>
+                                                        );
+                                                    })}
                                             </div>
                                         </div>
                                     </div>
-
+                                    
                                     {/* Action Buttons */}
                                     <div className="flex gap-2.5 pt-4 border-t border-slate-800 flex-shrink-0">
                                         <button 
@@ -1731,7 +1915,7 @@
                                         return benchIds.map(benchId => {
                                             const p = teamObj?.players.find(x => x.id === benchId);
                                             return p ? (
-                                                <button key={benchId} onClick={() => executeSubstitution(subTargetPlayer.id, benchId, subTargetPlayer.team === 'A')} className="w-full text-xs flex justify-between p-2.5 bg-slate-950 border border-slate-855 rounded-lg text-slate-200 cursor-pointer">
+                                                <button key={benchId} onClick={() => executeSubstitution(subTargetPlayer.id, benchId, subTargetPlayer.team === 'A')} className="w-full text-xs flex justify-between p-2.5 bg-slate-950 border border-slate-855 rounded-lg text-slate-200 cursor-pointer hover:border-emerald-500 transition-colors">
                                                     <span>#{p.number} {p.name}</span> <span className="text-emerald-400 font-bold">Sub In</span>
                                                 </button>
                                             ) : null;
@@ -1790,8 +1974,8 @@
                                 <p className="text-sm text-slate-200 leading-relaxed mb-4">
                                     <strong className="text-white">#{foulAlert.number} {foulAlert.playerName}</strong> has reached <strong className="text-orange-400">{foulAlert.fouls} personal fouls</strong>.
                                     {foulAlert.type === 'disqualified' 
-                                        ? ' This player has officially fouled out and must be substituted off the court.' 
-                                        : ' They are now in severe foul trouble and are only one foul away from disqualification.'}
+                                         ? ' This player has officially fouled out and must be substituted off the court.' 
+                                         : ' They are now in severe foul trouble and are only one foul away from disqualification.'}
                                 </p>
                                 <button 
                                     onClick={() => setFoulAlert(null)}
